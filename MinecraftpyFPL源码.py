@@ -1,74 +1,74 @@
 将Tkinter导入为tk
-from tkinter import ttk, filedialog, messagebox
-import subprocess
-import os
-import json
-import requests
-import webbrowser
-import sys
-import threading
-import time
-from tkinter import simpledialog
-import winsound  # Windows自带的声音库
+从……起Tkinter进口TTK、FileDialog、MessageBox
+进口子流程
+进口操作系统
+进口JSON
+进口请求
+进口网络浏览器
+进口sys
+进口穿线
+进口时间
+从……起Tkinter进口simpledialog
+进口WinSound#Windows自带的声音库
 
-class MinecraftLauncher:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("MinecraftpyFPL")
-        self.root.geometry("600x400")
+班级MinecraftLauncher：
+    定义 __init__(self，根):
+自己。根=root
+自己。根.标题("MinecraftpyFPL")
+自己。根.几何学("600x400")
         
         # 数据文件夹路径
-        self.data_dir = os.path.join(os.path.expanduser("~"), "MinecraftpyFPL")
-        self.logs_dir = os.path.join(self.data_dir, "logs")
-        os.makedirs(self.data_dir, exist_ok=True)
-        os.makedirs(self.logs_dir, exist_ok=True)
+自己。数据目录(_D)=os.路径.参加(操作系统。路径.expanduser("~"),"MinecraftpyFPL")
+自己。logs_dir=os.路径.参加(自己。数据目录(_D),"日志")
+操作系统。makedirs(自己。数据目录(_D)，exist_ok=正确)
+操作系统。makedirs(自己。logs_dir，exist_ok=正确)
         
         # 配置文件路径
-        self.config_file = os.path.join(self.data_dir, "config.json")
-        self.load_config()
+自己。config_file=os.路径.参加(自己。数据目录(_D),"config.json")
+自己。load_config()
         
         # 设置游戏目录
-        self.game_dir = tk.StringVar(value=self.config.get("game_dir", os.path.join(os.path.expanduser("~"), "Minecraft")))
+自己。游戏目录(_D)=tk.StringVar(value=self。配置.得到("游戏目录(_d)"，os.路径.参加(操作系统。路径.expanduser("~"),"Minecraft")))
         
-        # 设置Java路径
-        self.java_path = tk.StringVar(value=self.config.get("java_path", "java"))
+        #设置Java路径
+自己。Java路径(_P)=tk.StringVar(value=self。配置.得到("java_path","java"))
         
-        # Minecraft版本列表
-        self.versions = self.get_versions()
+        #《我的世界》版本列表
+自己。版本=self。获取版本(_V)()
         
         # 启动次数计数器
-        self.startup_count = self.config.get("startup_count", 0)
+自己。startup_count=self。配置.得到("startup_count",0)
         
         # 创建界面
-        self.create_widgets()
+自己。创建小部件(_W)()
     
-    def load_config(self):
-        if os.path.exists(self.config_file):
-            with open(self.config_file, 'r') as f:
-                self.config = json.load(f)
-        else:
-            self.config = {
+    定义 load_config(自己):
+        如果操作系统。路径.存在(自己。config_file):
+            和……一起 打开(自己。config_file,'R') 作为f：
+自己。配置=json。负载(f)
+        其他:
+自己。配置={
                 "游戏目录(_d)"：os.路径.参加(操作系统。路径.expanduser("~"),"Minecraft"),
-                "java_path":"java",
-                "memory_mode":"自动",
-                "max_memory":"2048m",
-                "皮肤":"默认",
-                "resolution_width":854,
-                "resolution_height":480
+                "java_path"："java"，
+"memory_mode"："自动"，
+"max_memory"："2048m"，
+"皮肤":"默认",
+"resolution_width"：854,
+"resolution_height"：480
             }
 自己。保存配置(_C)()
     
     定义 保存配置(_C)(自己):
-        和……一起 打开(自己。config_file,'W') 作为f：
+和……一起打开(自己。配置文件，'W')作为f：
 JSON.倾倒(自己。配置，f，缩进=4)
     
     定义 获取版本(_V)(自己):
-        尝试:
+尝试:
 响应=请求。得到("https://launchermeta.mojang.com/mc/game/version_manifest.json")
 响应。提高状态()
 版本=响应。JSON()["版本"]
-            返回 [版本["ID"] 为版本在……内版本]
-        除……之外请求。RequestException 作为e：
+            返回 [版本["ID"]为版本在……内版本]
+除……之外请求。RequestException作为e：
 MessageBox。淋浴器("错误","无法获取版本列表: "+str(e))
             返回 []
     
