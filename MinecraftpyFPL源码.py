@@ -163,7 +163,7 @@ class MinecraftLauncher:
     def change_skin(self):
         skin_path = filedialog.askopenfilename(title="选择皮肤", filetypes=[("Image files", "*.png *.jpg")])
         if skin_path:
-            skin_dir = os.path.join(self.game_dir.get            ), "skins")
+            skin_dir = os.path.join(self.game_dir.get(), "skins")
             os.makedirs(skin_dir, exist_ok=True)
             skin_name = os.path.basename(skin_path)
             skin_dest = os.path.join(skin_dir, skin_name)
@@ -173,16 +173,15 @@ class MinecraftLauncher:
             self.save_config()
 
     def change_background(self):
-        background_style = simpledialog.askstring("更改背景", "输入背景样式（深色/半透明）或选择背景图片：")
-        if background_style:
-            if background_style.lower() in ["深色", "半透明"]:
-                self.config["background_style"] = background_style.lower()
-            else:
-                background_image = filedialog.askopenfilename(title="选择背景图片", filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")])
-                if background_image:
-                    self.config["background_style"] = background_image
-            self.apply_background_style()
-            self.save_config()
+        background_style = simpledialog.askstring("更改背景", "输入背景样式（深色/半透明）或选择背景图片：")if background_style:
+                if background_style.lower() in ["深色", "半透明"]:
+                    self.config["background_style"] = background_style.lower()
+                else:
+                    background_image = filedialog.askopenfilename(title="选择背景图片", filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")])
+                    if background_image:
+                        self.config["background_style"] = background_image
+                self.apply_background_style()
+                self.save_config()
 
     def apply_background_style(self):
         if self.config["background_style"] in ["深色"]:
@@ -292,9 +291,12 @@ class MinecraftLauncher:
         libraries_path = os.path.join(game_dir, "libraries")
         classpath = [jar_path]
 
+        # 为了避免不同版本之间的库冲突，我们只添加一次每个库
+        added_libraries = set()
         for lib in os.listdir(libraries_path):
-            if lib.endswith(".jar"):
+            if lib.endswith(".jar") and lib not in added_libraries:
                 classpath.append(os.path.join(libraries_path, lib))
+                added_libraries.add(lib)
 
         return ":".join(classpath)
 
