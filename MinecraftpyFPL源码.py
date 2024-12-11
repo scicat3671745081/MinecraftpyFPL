@@ -1,4 +1,4 @@
-import tkinter as tk
+将Tkinter导入为tk
 from tkinter import ttk, filedialog, messagebox
 import subprocess
 import os
@@ -48,137 +48,137 @@ class MinecraftLauncher:
                 self.config = json.load(f)
         else:
             self.config = {
-                "game_dir": os.path.join(os.path.expanduser("~"), "Minecraft"),
-                "java_path": "java",
-                "memory_mode": "auto",
-                "max_memory": "2048m",
-                "skin": "default",
-                "resolution_width": 854,
-                "resolution_height": 480
+                "游戏目录(_d)"：os.路径.参加(操作系统。路径.expanduser("~"),"Minecraft"),
+                "java_path":"java",
+                "memory_mode":"自动",
+                "max_memory":"2048m",
+                "皮肤":"默认",
+                "resolution_width":854,
+                "resolution_height":480
             }
-            self.save_config()
+自己。保存配置(_C)()
     
-    def save_config(self):
-        with open(self.config_file, 'w') as f:
-            json.dump(self.config, f, indent=4)
+    定义 保存配置(_C)(自己):
+        和……一起 打开(自己。config_file,'W') 作为f：
+JSON.倾倒(自己。配置，f，缩进=4)
     
-    def get_versions(self):
-        try:
-            response = requests.get("https://launchermeta.mojang.com/mc/game/version_manifest.json")
-            response.raise_for_status()
-            versions = response.json()["versions"]
-            return [version["id"] for version in versions]
-        except requests.RequestException as e:
-            messagebox.showerror("错误", "无法获取版本列表: " + str(e))
-            return []
+    定义 获取版本(_V)(自己):
+        尝试:
+响应=请求。得到("https://launchermeta.mojang.com/mc/game/version_manifest.json")
+响应。提高状态()
+版本=响应。JSON()["版本"]
+            返回 [版本["ID"] 为版本在……内版本]
+        除……之外请求。RequestException 作为e：
+MessageBox。淋浴器("错误","无法获取版本列表: "+str(e))
+            返回 []
     
-    def create_widgets(self):
-        self.root.tk_setPalette(background='#ffffff')
+    定义 创建小部件(_W)(自己):
+自己。根.TK_setPalette(背景='#ffffff')
         
         # 创建菜单栏
-        menu_bar = tk.Menu(self.root)
-        self.root.config(menu=menu_bar)
+menu_bar=tk。菜单(自己。根)
+自己。根.配置(menu=menu_bar)
         
         # 创建主菜单
-        main_menu = tk.Menu(menu_bar, tearoff=0)
-        menu_bar.add_cascade(label="主菜单", menu=main_menu)
-        main_menu.add_command(label="关于软件/作者", command=self.about_author)
-        main_menu.add_command(label="下载", command=self.open_resource_page)
-        main_menu.add_command(label="设置", command=self.open_settings)
+main_menu=tk。菜单(menu_bar，tearoff=0)
+菜单栏(_B)。add_cascade(标签="主菜单"，menu=main_menu)
+主菜单(_M)。add_command(标签="关于软件/作者"，command=self。关于作者(_A))
+主菜单(_M)。add_command(标签="下载"，command=self。打开资源页)
+主菜单(_M)。add_command(标签="设置"，command=self。打开设置(_S))
         
         # 创建游戏设置界面
-        self.game_settings_frame = tk.Frame(self.root)
-        self.game_settings_frame.pack(fill=tk.BOTH, expand=True)
+自己。游戏设置帧=tk.框架(自己。根)
+自己。游戏设置帧.包装(fill=tk.双方，展开=正确)
         
-        tk.Label(self.game_settings_frame, text="游戏目录:").grid(row=0, column=0, sticky=tk.W)
-        entry_game_dir = tk.Entry(self.game_settings_frame, textvariable=self.game_dir, width=40)
-        entry_game_dir.grid(row=0, column=1)
-        tk.Button(self.game_settings_frame, text="浏览", command=self.browse_game_dir).grid(row=0, column=2)
+TK.标签(自己。游戏设置帧，文本="游戏目录：").网格(行=0，列=0，sticky=tk.W)
+entry_game_dir=tk.进入(自己。游戏设置帧，text变量=self.游戏目录(_D)，宽度=40)
+entry_game_dir。网格(行=0，列=1)
+TK.按钮(自己。游戏设置帧，文本="浏览"，command=self。浏览游戏目录).网格(行=0，列=2)
         
-        tk.Label(self.game_settings_frame, text="Java路径:").grid(row=1, column=0, sticky=tk.W)
-        entry_java_path = tk.Entry(self.game_settings_frame, textvariable=self.java_path, width=40)
-        entry_java_path.grid(row=1, column=1)
-        tk.Button(self.game_settings_frame, text="浏览", command=self.browse_java_path).grid(row=1, column=2)
+TK.标签(自己。游戏设置帧，text="Java路径：").网格(行=1，列=0，sticky=tk.W)
+entry_java_path=tk。进入(自己。游戏设置帧，text变量=self.Java路径(_P)，宽度=40)
+entry_java_path。网格(行=1，列=1)
+TK.按钮(自己。游戏设置帧，文本="浏览"，command=self.浏览java路径).网格(行=1，列=2)
         
-        tk.Label(self.game_settings_frame, text="Minecraft版本:").grid(row=2, column=0, sticky=tk.W)
-        self.version = tk.StringVar(value=self.versions[0] if self.versions else "")
-        version_dropdown = ttk.Combobox(self.game_settings_frame, textvariable=self.version, values=self.versions, state="readonly")
-        version_dropdown.grid(row=2, column=1)
-        version_dropdown.current(0)
+TK.标签(自己。游戏设置帧，text="Minecraft版本：").网格(行=2，列=0，sticky=tk.W)
+自己。版本=tk.StringVar(值=self.版本[0]如果自己。版本其他“”)
+version_dropdown=ttk.combobox(自己。游戏设置帧，文本变量=self.版本，值=self.版本，状态="只读")
+version_dropdown。网格(行=2，列=1)
+version_dropdown。当前(0)
         
-        tk.Button(self.game_settings_frame, text="选择本地版本", command=self.select_local_version).grid(row=2, column=2)
+TK.按钮(自己。游戏设置帧，文本="选择本地版本"，command=self。选择本地版本).网格(行=2，列=2)
         
-        tk.Button(self.game_settings_frame, text="更改皮肤", command=self.change_skin).grid(row=3, column=1, pady=10)
+TK.按钮(自己。游戏设置帧，文本="更改皮肤"，command=self.更改皮肤(_S)).网格(行=3，列=1，pady=10)
         
-        tk.Button(self.game_settings_frame, text="更改背景", command=self.change_background).grid(row=4, column=1, pady=10)
+TK.按钮(自己。游戏设置帧，文本="更改背景"，command=self.更改背景(_B)).网格(行=4，列=1，pady=10)
         
-        tk.Button(self.game_settings_frame, text="安装插件/模组", command=self.install_plugin_mod).grid(row=5, column=1, pady=10)
+TK.按钮(自己。游戏设置帧，文本="安装插件/模组"，command=self.install_plugin_mod).网格(行=5，列=1，pady=10)
         
-        # 内存分配
-        tk.Label(self.game_settings_frame, text="内存分配:").grid(row=6, column=0, sticky=tk.W)
-        self.memory_mode = tk.StringVar(value=self.config.get("memory_mode", "auto"))
-        memory_mode_radio = tk.Radiobutton(self.game_settings_frame, text="自动", variable=self.memory_mode, value="auto")
-        memory_mode_radio.grid(row=6, column=1)
-        memory_mode_radio = tk.Radiobutton(self.game_settings_frame, text="手动", variable=self.memory_mode, value="manual")
-        memory_mode_radio.grid(row=6, column=2)
+# 内存分配
+TK.标签(自己。游戏设置帧，文本="内存分配：").网格(行=6，列=0，sticky=tk.W)
+自己。memory_mode=tk.StringVar(值=self.配置.得到("memory_mode"，"自动"))
+memory_mode_radio=tk.RadioButton(自己。游戏设置帧，文本="自动"，变量=self.memory_mode，值="自动")
+memory_mode_radio。网格(行=6，列=1)
+memory_mode_radio=tk.RadioButton(自己。游戏设置帧，文本="手动"，变量=self.memory_mode，值="手动")
+memory_mode_radio。网格(行=6，列=2)
         
-        if self.memory_mode.get() == "manual":
-            self.max_memory = tk.IntVar(value=int(self.config.get("max_memory", 2048)))
-            tk.Label(self.game_settings_frame, text="最大内存(MB):").grid(row=7, column=0, sticky=tk.W)
-            scale_max_memory = tk.Scale(self.game_settings_frame, from_=512, to=8192, orient=tk.HORIZONTAL, variable=self.max_memory)
-            scale_max_memory.grid(row=7, column=1)
+如果自己。memory_mode。得到()=="手动"：
+自己。Max_memory=tk.INTVAR(价值=int(自己.配置.得到("max_memory"，2048)))
+TK.标签(自己。游戏设置帧，文本="最大内存(MB)：").网格(行=7，列=0，sticky=tk.W)
+scale_max_memory=tk。规模(自己。游戏设置帧，from_=512，to=8192，方向=tk。水平的，变量=self.Max_memory)
+scale_max_memory。网格(行=7，列=1)
         
-        # 分辨率设置
-        tk.Label(self.game_settings_frame, text="分辨率宽度:").grid(row=8, column=0, sticky=tk.W)
-        self.resolution_width = tk.IntVar(value=self.config.get("resolution_width", 854))
-        entry_resolution_width = tk.Entry(self.game_settings_frame, textvariable=self.resolution_width, width=10)
-        entry_resolution_width.grid(row=8, column=1)
+# 分辨率设置
+TK.标签(自己。游戏设置帧，文本="分辨率宽度：").网格(行=8，列=0，sticky=tk.W)
+自己。分辨率_宽度=tk.INTVAR(值=self.配置.得到("resolution_width"，854))
+entry_resolution_width=tk。进入(自己。游戏设置帧，text变量=self.分辨率_宽度，宽度=10)
+entry_resolution_width。网格(行=8，列=1)
         
-        tk.Label(self.game_settings_frame, text="分辨率高度:").grid(row=9, column=0, sticky=tk.W)
-        self.resolution_height = tk.IntVar(value=self.config.get("resolution_height", 480))
-        entry_resolution_height = tk.Entry(self.game_settings_frame, textvariable=self.resolution_height, width=10)
-        entry_resolution_height.grid(row=9, column=1)
+TK.标签(自己。游戏设置帧，文本="分辨率高度：").网格(行=9，列=0，sticky=tk.W)
+自己。分辨率_高度=tk.INTVAR(值=self.配置.得到("resolution_height"，480))
+entry_resolution_height=tk。进入(自己。游戏设置帧，text变量=self.分辨率_高度，宽度=10)
+entry_resolution_height.grid(行=9，列=1)
         
-        tk.Button(self.game_settings_frame, text="启动游戏", command=self.start_game).grid(row=10, column=1, pady=10)
+tk.Button(self.game_settings_frame，text="启动游戏"，command=self.start_game).grid(row=10，column=1，pady=10)
         
-        tk.Button(self.game_settings_frame, text="关于作者", command=self.about_author).grid(row=11, column=1, pady=10)
+tk.Button(self.game_settings_frame，text="关于作者"，command=self.about_author).grid(row=11，column=1，pady=10)
     
-    def browse_game_dir(self):
-        directory = filedialog.askdirectory()
-        self.game_dir.set(directory)
-        self.save_config()
+Def浏览游戏目录(自)：
+directory=fileialog.askdirectory()
+self.game_dir.set(目录)
+self.save_config()
     
-    def browse_java_path(self):
-        file_path = filedialog.askopenfilename()
-        self.java_path.set(file_path)
-        self.save_config()
+Def浏览java路径(自身)：
+file_path=fileialog.askopenfilename()
+self.java_path.set(文件路径)
+self.save_config()
     
-    def select_local_version(self):
-        version_path = filedialog.askopenfilename(title="选择本地版本", filetypes=[("Jar files", "*.jar")])
-        if version_path:
-            self.version.set(os.path.basename(version_path))
-            self.config["version"] = self.version.get()
-            self.save_config()
+定义选择本地版本(自身)：
+version_path=fileialog.askopenfilename(title="选择本地版本"，filetypes=[("Jar文件"，"*.jar")])
+如果版本路径：
+自己。版本。设置(os.路径。基本名称(版本路径)
+self.config["version"]=self.version.get()
+self.save_config()
     
-    def change_skin(self):
-        skin_path = filedialog.askopenfilename(title="选择皮肤", filetypes=[("Image files", "*.png *.jpg")])
-        if skin_path:
-            skin_dir = os.path.join(self.game_dir.get            ), "skins")
-            os.makedirs(skin_dir, exist_ok=True)
-            skin_name = os.path.basename(skin_path)
-            skin_dest = os.path.join(skin_dir, skin_name)
-            with open(skin_dest, 'wb') as f:
-                f.write(open(skin_path, 'rb').read())
-            self.config["skin"] = skin_name
-            self.save_config()
+Def change_skin(自身)：
+skin_path=fileialog.askopenfilename(title="选择皮肤"，filetypes=[("图像文件"，"*.png*.jpg")])
+如果皮肤路径：
+skin_dir=os.path.join(self.game_dir.get)，"皮肤")
+os.makedirs(皮肤目录，存在确定=真)
+皮肤名称=os.path.basename(皮肤路径)
+skin_dest=os.path.join(皮肤目录，皮肤名称)
+open(skin_dest，'wb')为f：
+f.write(打开(皮肤路径，'rb').read())
+self.config["皮肤"]=皮肤名称
+self.save_config()
 
-    def change_background(self):
-        background_style = simpledialog.askstring("更改背景", "输入背景样式（深色/半透明）或选择背景图片：")
-        if background_style:
-            if background_style.lower() in ["深色", "半透明"]:
-                self.config["background_style"] = background_style.lower()
-            else:
-                background_image = filedialog.askopenfilename(title="选择背景图片", filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")])
+定义变更背景(自)(_B)：
+background_style=simpledialog.askstring("更改背景"，"输入背景样式（深色/半透明）或选择背景图片：")
+如果背景样式(_S)：
+如果在["深色"，"半透明"]中使用background_style.lower()：
+self.config["background_style"]=background_style.lower()
+其他：
+background_image=fileialog.askopenfilename(标题="选择背景图片"，filetypes=[("图像文件"，"*.png*.jpg*.jpeg*.bmp")])
                 if background_image:
                     self.config["background_style"] = background_image
             self.apply_background_style()
