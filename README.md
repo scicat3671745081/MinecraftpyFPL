@@ -1,3 +1,5 @@
+支持系统windows10及以上x64
+
 以下是MinecraftpyFPL启动器的主要功能列表，这些功能可以根据您提供的详细要求进行实现和完善：
 
 
@@ -109,12 +111,12 @@ MinecraftpyFPL 是一个为 Minecraft 游戏设计的启动器，提供了多种
 
 • 安装依赖：
 
-• 运行`install_dependencies.bat`批处理文件以自动安装所有必要的 Python 依赖。
+• 运行`依赖安装.bat`批处理文件以自动安装所有必要的 Python 依赖。
 
 
 • 运行启动器：
 
-• 双击`MinecraftpyFPL.py`文件启动 MinecraftpyFPL 启动器。
+• 双击`MinecraftpyFPL源码.py`文件启动 MinecraftpyFPL 启动器。（如果有MinecraftpyFPL_x64amd.exe可以双击exe）
 
 
 主界面
