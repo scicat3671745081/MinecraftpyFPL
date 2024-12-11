@@ -180,7 +180,7 @@ MinecraftpyFPL 是一个为 Minecraft 游戏设计的启动器，提供了多种
 
 版权和许可
 
-• MinecraftpyFPL 是一个开源项目，遵循 MIT 许可证。
+• MinecraftpyFPL 是一个开源项目，遵循 GPL-3.0许可证
 
 • 所有使用的第三方库和资源均遵循各自的许可证。
 
