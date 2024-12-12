@@ -1,41 +1,42 @@
 支持系统windows10及以上x64
 
 为了实现MinecraftpyFPL启动器的所有功能，以下是所需的依赖库及其安装方式：依赖列表1. requests：
-• 用于发送HTTP请求，获取Minecraft版本信息等。
-• 安装方法：  pip install requests  
-2. tkinter：
-• Python的标准GUI库，用于创建用户界面。
-• 安装方法：通常与Python一起安装，如果没有，可以尝试  pip install tk  。
-3. json：
+·用于发送HTTP请求，获取我的世界版本信息等。
+·安装方法：PIP安装请求  
+2.t kinter：
+·蟒蛇皮的标准GUI库，用于创建用户界面。
+·安装方法：通常与python一起安装，如果没有，可以尝试PIP安装tk.
+3.约翰逊：
 • 用于处理JSON数据，如保存配置信息。
-• 安装方法：Python标准库，无需安装。
-4. subprocess：
-• 用于在Python脚本中启动外部进程，如启动Minecraft游戏。
-• 安装方法：Python标准库，无需安装。
-5. threading：
+·安装方法：python标准库，无需安装。
+4.子流程：
+·用于在python脚本中启动外部进程，如启动我的世界游戏。
+·安装方法：python标准库，无需安装。
+5.穿线：
 • 用于创建多线程，如同时更新UI和执行后台任务。
-• 安装方法：Python标准库，无需安装。
-6. time：• 用于处理时间相关的操作，如动画效果。
-• 安装方法：Python标准库，无需安装。
-7. os：
+·安装方法：python标准库，无需安装。
+6.时间：·用于处理时间相关的操作，如动画效果。
+·安装方法：python标准库，无需安装。
+7.os：
 • 用于操作系统级别的功能，如文件路径操作。
-• 安装方法：Python标准库，无需安装。
-8. webbrowser：
+·安装方法：python标准库，无需安装。
+8.网络浏览器：
 • 用于在默认浏览器中打开网页。
-• 安装方法：Python标准库，无需安装。
-9. sys：
-• 用于访问与Python解释器密切相关的变量和函数。
-• 安装方法：Python标准库，无需安装。
-10. winsound：
-• Windows自带的库，用于播放声音。
-• 安装方法：Windows自带，无需安装。第三方库安装对于需要安装的第三方库，可以使用以下命令进行安装：install requests
+·安装方法：python标准库，无需安装。
+9.sys：
+·用于访问与python解释器密切相关的变量和函数。
+·安装方法：python标准库，无需安装。
+·pyperclip：·用于将文本复制到剪贴板。·安装方法：PIP安装pyperclip2.追溯：·用于获取异常的回溯信息，方便错误日志记录。·安装方法：python标准库，无需安装。
+十、WinSound：
+·Windows自带的库，用于播放声音。
+·安装方法：Windows自带，无需安装。第三方库安装对于需要安装的第三方库，可以使用以下命令进行安装：安装要求
 Windows自带依赖
-• DirectX：
-• 用于3D渲染。
-• 安装方法：Windows自带，无需安装。
-• Windows Sonic：
-• 用于3D声音效果。
-• 安装方法：Windows 10及以上版本自带，无需安装。
+·DirectX：
+·用于3D渲染。
+·安装方法：Windows自带，无需安装。
+·Windows Sonic：
+·用于3D声音效果.
+·安装方法：Windows10及以上版本自带，无需安装.
 
 
 
