@@ -2,7 +2,146 @@
 
 
 ---
+根据您的要求，以下是MinecraftpyFPL启动器所需的全部依赖库及其安装方法：
 
+
+Python依赖
+
+
+• requests
+
+• 用于发送HTTP请求，获取Minecraft版本信息等。
+
+• 安装方法：`pip install requests`
+
+
+• tkinter
+
+• Python的标准GUI库，用于创建用户界面。
+
+• 安装方法：通常与Python一起安装，如果没有，可以尝试`pip install tk`
+
+
+• json
+
+• 用于处理JSON数据，如保存配置信息。
+
+• 安装方法：Python标准库，无需安装。
+
+
+• subprocess
+
+• 用于在Python脚本中启动外部进程，如启动Minecraft游戏。
+
+• 安装方法：Python标准库，无需安装。
+
+
+• threading
+
+• 用于创建多线程，如同时更新UI和执行后台任务。
+
+• 安装方法：Python标准库，无需安装。
+
+
+• time
+
+• 用于处理时间相关的操作，如动画效果。
+
+• 安装方法：Python标准库，无需安装。
+
+
+• os
+
+• 用于操作系统级别的功能，如文件路径操作。
+
+• 安装方法：Python标准库，无需安装。
+
+
+• webbrowser
+
+• 用于在默认浏览器中打开网页。
+
+• 安装方法：Python标准库，无需安装。
+
+
+• sys
+
+• 用于访问与Python解释器密切相关的变量和函数。
+
+• 安装方法：Python标准库，无需安装。
+
+
+• winsound
+
+• Windows自带的库，用于播放声音。
+
+• 安装方法：Windows自带，无需安装。
+
+
+• pyperclip
+
+• 用于将文本复制到剪贴板。
+
+• 安装方法：`pip install pyperclip`
+
+
+• PyOpenGL
+
+• 用于3D渲染。
+
+• 安装方法：`pip install PyOpenGL PyOpenGL_accelerate`
+
+
+第三方库安装
+
+对于需要安装的第三方库，可以使用以下命令进行安装：
+pip install requests pyperclip PyOpenGL PyOpenGL_accelerate
+
+
+
+
+
+
+Windows自带依赖
+
+
+• DirectX
+
+• 用于3D渲染。
+
+• 安装方法：Windows自带，无需安装。
+
+
+• Windows Sonic
+
+• 用于3D声音效果。
+
+• 安装方法：Windows 10及以上版本自带，无需安装。
+
+
+批处理文件安装所有依赖
+
+您可以创建一个`requirements.txt`文件，列出所有需要的Python包及其版本，然后使用以下命令安装：
+pip install -r requirements.txt
+
+
+
+
+
+其中`requirements.txt`文件内容如下：
+requests
+pyperclip
+PyOpenGL
+PyOpenGL_accelerate
+
+
+
+
+
+
+
+
+确保您的Python环境已经设置好，并且有足够的权限来安装这些包。对于非Python的依赖，如Java或特定的Minecraft版本，您需要单独安装并配置它们。如果您在公司或学校的网络环境中，可能需要配置代理才能使`pip`正常工作。
 
 
 MinecraftpyFPL 帮助文件
