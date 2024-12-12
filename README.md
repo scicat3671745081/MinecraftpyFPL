@@ -174,7 +174,7 @@ MinecraftpyFPL 是一个为 Minecraft 游戏设计的启动器，提供了多种
 
 • 运行启动器：
 
-• 双击`MinecraftpyFPL源码.py`文件启动 MinecraftpyFPL 启动器。（如果有MinecraftpyFPL_x64amd.exe可以双击exe）
+• 双击`MinecraftpyFPL源码.py`文件启动 MinecraftpyFPL 启动器。（如果有`MinecraftpyFPL_x64amd.exe`可以双击exe）
 
 
 主界面
