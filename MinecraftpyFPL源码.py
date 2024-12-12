@@ -10,6 +10,7 @@ import threading
 import time
 from tkinter import simpledialog
 import winsound  # Windows自带的声音库
+import shutil
 
 class MinecraftLauncher:
     def __init__(self, root):
@@ -20,8 +21,10 @@ class MinecraftLauncher:
         # 数据文件夹路径
         self.data_dir = os.path.join(os.path.expanduser("~"), "MinecraftpyFPL")
         self.logs_dir = os.path.join(self.data_dir, "logs")
+        self.temp_dir = os.path.join(self.data_dir, "temp")
         os.makedirs(self.data_dir, exist_ok=True)
         os.makedirs(self.logs_dir, exist_ok=True)
+        os.makedirs(self.temp_dir, exist_ok=True)
         
         # 配置文件路径
         self.config_file = os.path.join(self.data_dir, "config.json")
@@ -54,7 +57,8 @@ class MinecraftLauncher:
                 "max_memory": "2048m",
                 "skin": "default",
                 "resolution_width": 854,
-                "resolution_height": 480
+                "resolution_height": 480,
+                "auto_start": False
             }
             self.save_config()
     
@@ -85,6 +89,7 @@ class MinecraftLauncher:
         main_menu.add_command(label="关于软件/作者", command=self.about_author)
         main_menu.add_command(label="下载", command=self.open_resource_page)
         main_menu.add_command(label="设置", command=self.open_settings)
+        main_menu.add_checkbutton(label="开机自启", onvalue=True, offvalue=False, variable=self.config, command=self.toggle_auto_start)
         
         # 创建游戏设置界面
         self.game_settings_frame = tk.Frame(self.root)
@@ -145,21 +150,24 @@ class MinecraftLauncher:
     
     def browse_game_dir(self):
         directory = filedialog.askdirectory()
-        self.game_dir.set(directory)
-        self.save_config()
-    
+        if directory:
+            self.game_dir.set(directory)
+            self.save_config()
+            self.check_game_files()
+
     def browse_java_path(self):
         file_path = filedialog.askopenfilename()
-        self.java_path.set(file_path)
-        self.save_config()
-    
+        if file_path:
+            self.java_path.set(file_path)
+            self.save_config()
+
     def select_local_version(self):
         version_path = filedialog.askopenfilename(title="选择本地版本", filetypes=[("Jar files", "*.jar")])
         if version_path:
             self.version.set(os.path.basename(version_path))
             self.config["version"] = self.version.get()
             self.save_config()
-    
+
     def change_skin(self):
         skin_path = filedialog.askopenfilename(title="选择皮肤", filetypes=[("Image files", "*.png *.jpg")])
         if skin_path:
@@ -169,187 +177,250 @@ class MinecraftLauncher:
             skin_dest = os.path.join(skin_dir, skin_name)
             with open(skin_dest, 'wb') as f:
                 f.write(open(skin_path, 'rb').read())
-            self.config["skin"] = skin_name
-            self.save_config()
-
-    def change_background(self):
-        background_style = simpledialog.askstring("更改背景", "输入背景样式（深色/半透明）或选择背景图片：")if background_style:
-                if background_style.lower() in ["深色", "半透明"]:
-                    self.config["background_style"] = background_style.lower()
-                else:
-                    background_image = filedialog.askopenfilename(title="选择背景图片", filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")])
-                    if background_image:
-                        self.config["background_style"] = background_image
-                self.apply_background_style()
-                self.save_config()
-
-    def apply_background_style(self):
-        if self.config["background_style"] in ["深色"]:
-            self.root.config(bg="#333")
-        elif self.config["background_style"] == "半透明":
-            self.root.attributes('-alpha', 0.5)  # 设置窗口半透明
+ self.config["skin"] = skin_name
+ self.save_config()
+def change_background(self):
+    background_style = simpledialog.askstring("更改背景", "输入背景样式（深色/半透明）或选择背景图片：")
+    if background_style:
+        if background_style.lower() in ["深色", "半透明"]:
+            self.config["background_style"] = background_style.lower()
         else:
-            # 设置背景图片
-            self.root.config(bg=self.config["background_style"])
-
-    def install_plugin_mod(self):
-        plugin_mod_path = filedialog.askopenfilename(title="选择插件/模组", filetypes=[("Jar files", "*.jar")])
-        if plugin_mod_path:
-            plugin_mod_dir = os.path.join(self.game_dir.get(), "mods")
-            os.makedirs(plugin_mod_dir, exist_ok=True)
-            plugin_mod_name = os.path.basename(plugin_mod_path)
-            plugin_mod_dest = os.path.join(plugin_mod_dir, plugin_mod_name)
-            with open(plugin_mod_dest, 'wb') as f:
-                f.write(open(plugin_mod_path, 'rb').read())
-            messagebox.showinfo("成功", "插件/模组安装成功")
-
-    def about_author(self):
-        messagebox.showinfo("关于作者", "关注scicat科技猫新号用于查看后续更新。\n开源地址：https://github.com/scicat3671745081/MinecraftpyFPL")
-        if messagebox.askyesno("打赏支持", "是否要打赏支持作者？"):
-            webbrowser.open('https://b23.tv/LyN8NqX')
-
-    def open_resource_page(self):
-        webbrowser.open("https://www.mcmod.cn/")
-
-    def open_settings(self):
-        # 打开设置界面
-        pass
-
-    def start_game(self):
-        self.startup_count += 1
+            background_image = filedialog.askopenfilename(title="选择背景图片", filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")])
+            if background_image:
+                self.config["background_style"] = background_image
+        self.apply_background_style()
         self.save_config()
 
-        if self.startup_count >= 10:
-            messagebox.showinfo("支持作者", "您已启动游戏10次，如果您喜欢这个启动器，请支持作者：\nhttps://b23.tv/kmfqwBQ")
-            if messagebox.askyesno("支持作者", "是否现在访问支持页面？"):
-                webbrowser.open('https://b23.tv/LyN8NqX')
-                self.startup_count = 0
+def apply_background_style(self):
+    if self.config["background_style"] in ["深色"]:
+        self.root.config(bg="#333")
+    elif self.config["background_style"] == "半透明":
+        self.root.attributes('-alpha', 0.5)  # 设置窗口半透明
+    else:
+        # 设置背景图片
+        self.root.config(bg=self.config["background_style"])
 
-        java_path = self.java_path.get()
-        game_dir = self.game_dir.get()
-        version = self.version.get()
+def install_plugin_mod(self):
+    plugin_mod_path = filedialog.askopenfilename(title="选择插件/模组", filetypes=[("Jar files", "*.jar")])
+    if plugin_mod_path:
+        plugin_mod_dir = os.path.join(self.game_dir.get(), "mods")
+        os.makedirs(plugin_mod_dir, exist_ok=True)
+        plugin_mod_name = os.path.basename(plugin_mod_path)
+        plugin_mod_dest = os.path.join(plugin_mod_dir, plugin_mod_name)
+        with open(plugin_mod_dest, 'wb') as f:
+            f.write(open(plugin_mod_path, 'rb').read())
+        messagebox.showinfo("成功", "插件/模组安装成功")
 
-        if not os.path.exists(os.path.join(game_dir, "versions", version, f"{version}.jar")):
-            messagebox.showerror("错误", "找不到Minecraft版本文件")
-            return
+def about_author(self):
+    messagebox.showinfo("关于作者", "关注scicat科技猫新号用于查看后续更新。\n开源地址：https://github.com/scicat3671745081/MinecraftpyFPL")
+    if messagebox.askyesno("打赏支持", "是否要打赏支持作者？"):
+        webbrowser.open('https://b23.tv/LyN8NqX')
 
-        if not os.path.exists(java_path):
-            messagebox.showerror("错误", "找不到Java路径")
-            return
+def open_resource_page(self):
+    webbrowser.open("https://www.mcmod.cn/")
 
-        # 显示启动动画和进度条
-        self.show_launch_animation()
+def open_settings(self):
+    # 打开设置界面
+    pass
 
-        # 构建classpath
-        classpath = self.get_classpath(game_dir, version)
-        assets_root = os.path.join(game_dir, "assets")
-        assets_index = os.path.join(assets_root, "indexes", "official.json")
-        assets = os.path.join(assets_root, "objects")
+def toggle_auto_start(self):
+    # 切换开机自启设置
+    self.config["auto_start"] = not self.config["auto_start"]
+    self.save_config()
+    if self.config["auto_start"]:
+        messagebox.showinfo("开机自启", "开机自启已启用")
+    else:
+        messagebox.showinfo("开机自启", "开机自启已禁用")
 
-        # 根据内存分配模式设置JVM参数
-        if self.memory_mode.get() == "auto":
-            max_memory = self.config.get("max_memory", "2048m")
-        else:
-            max_memory = str(self.max_memory.get()) + 'm'
+def start_game(self):
+    self.startup_count += 1
+    self.save_config()
 
-        # 根据分辨率设置游戏窗口大小
-        width = self.resolution_width.get()
-        height = self.resolution_height.get()
+    if self.startup_count >= 10:
+        messagebox.showinfo("支持作者", "您已启动游戏10次，如果您喜欢这个启动器，请支持作者：\nhttps://b23.tv/kmfqwBQ")
+        if messagebox.askyesno("支持作者", "是否现在访问支持页面？"):
+            webbrowser.open('https://b23.tv/LyN8NqX')
+            self.startup_count = 0
 
-        args = [
-            java_path,
-            "-Xmx" + max_memory,
-            "-Xms" + max_memory,
-            "-Djava.library.path=" + os.path.join(game_dir, "natives"),
-            "-cp",
-            classpath,
-            "--version",
-            version,
-            "--gameDir",
-            game_dir,
-            "--assetsDir",
-            assets,
-            "--assetIndex",
-            "official",
-            "--width",
-            str(width),
-            "--height",
-            str(height),
-            "net.minecraft.client.main.Main"
+    java_path = self.java_path.get()
+    game_dir = self.game_dir.get()
+    version = self.version.get()
+
+    if not os.path.exists(os.path.join(game_dir, "versions", version, f"{version}.jar")):
+        messagebox.showerror("错误", "找不到Minecraft版本文件")
+        return
+
+    if not os.path.exists(java_path):
+        messagebox.showerror("错误", "找不到Java路径")
+        return
+
+    # 显示启动动画和进度条
+    self.show_launch_animation()
+
+    # 构建classpath
+    classpath = self.get_classpath(game_dir, version)
+    assets_root = os.path.join(game_dir, "assets")
+    assets_index = os.path.join(assets_root, "indexes", "official.json")
+    assets = os.path.join(assets_root, "objects")
+
+    # 根据内存分配模式设置JVM参数
+    if self.memory_mode.get() == "auto":
+        max_memory = self.config.get("max_memory", "2048m")
+    else:
+        max_memory = str(self.max_memory.get()) + 'm'
+
+    # 根据分辨率设置游戏窗口大小
+    width = self.resolution_width.get()
+    height = self.resolution_height.get()
+
+    args = [
+        java_path,
+        "-Xmx" + max_memory,
+        "-Xms" + max_memory,
+        "-Djava.library.path=" + os.path.join(game_dir, "natives"),
+        "-cp",
+        classpath,
+        "--version",
+        version,
+        "--gameDir",
+        game_dir,
+        "--assetsDir",
+        assets,
+        "--assetIndex",
+        "official",
+        "--width",
+        str(width),
+        "--height",
+        str(height),
+        "net.minecraft.client.main.Main"
+    ]
+
+    try:
+        subprocess.run(args, cwd=game_dir)
+    except Exception as e:
+        messagebox.showerror("错误", str(e))
+
+    # 播放Minecraft开关声效
+    winsound.Beep(2500, 500)  # 频率2500Hz，持续500ms
+
+def get_classpath(self, game_dir, version):
+    jar_path = os.path.join(game_dir, "versions", version, f"{version}.jar")
+    libraries_path = os.path.join(game_dir, "libraries")
+    classpath = [jar_path]
+
+    # 为了避免不同版本之间的库冲突，我们只添加一次每个库
+    added_libraries = set()
+    for lib in os.listdir(libraries_path):
+        if lib.endswith(".jar") and lib not in added_libraries:
+            classpath.append(os.path.join(libraries_path, lib))
+            added_libraries.add(lib)
+
+    return ":".join(classpath)
+
+def show_launch_animation(self):
+    # 创建启动动画窗口
+    animation_window = tk.Toplevel(self.root)
+    animation_window.title("启动中...")
+    animation_window.geometry("300x200")
+
+    # 添加进度条
+    progress_label = tk.Label(animation_window, text="启动中...", font=("Helvetica", 16))
+    progress_label.pack(pady=20)
+
+    progress_var = tk.DoubleVar(value=0.0)
+    progress_bar = ttk.Progressbar(animation_window, variable=progress_var, maximum=100, length=200)
+    progress_bar.pack(pady=20)
+
+    # 添加挖矿动画
+    self.add_mining_animation(animation_window)
+
+    # 更新进度条
+    def update_progress():
+        for i in range(100):
+            progress_var.set(i + 1)
+            animation_window.update_idletasks()
+            time.sleep(0.03)
+        animation_window.destroy()
+
+    threading.Thread(target=update_progress).start()
+
+def add_mining_animation(self, animation_window):
+    # 这里可以添加一个简单的挖矿动画
+    # 例如，使用Label显示挖矿的文本
+    mining_label = tk.Label(animation_window, text="您的每一次启动都是对作者的支持\n开发团队只有科技猫一个人\n关注scicat科技猫新号查看后续更新\n开发不易，感谢支持", font=("Helvetica", 10), wraplength=280)
+    mining_label.pack(pady=20)
+
+    # 循环显示文本
+    def cycle_text():
+        messages = [
+            "您的每一次启动都是对作者的支持",
+            "开发团队只有科技猫一个人",
+            "关注scicat科技猫新号查看后续更新",
+            "开发不易，感谢支持"
         ]
-
-        try:
-            subprocess.run(args, cwd=game_dir)
-        except Exception as e:
-            messagebox.showerror("错误", str(e))
-
-        # 播放Minecraft开关声效
-        winsound.Beep(2500, 500)  # 频率2500Hz，持续500ms
-
-    def get_classpath(self, game_dir, version):
-        jar_path = os.path.join(game_dir, "versions", version, f"{version}.jar")
-        libraries_path = os.path.join(game_dir, "libraries")
-        classpath = [jar_path]
-
-        # 为了避免不同版本之间的库冲突，我们只添加一次每个库
-        added_libraries = set()
-        for lib in os.listdir(libraries_path):
-            if lib.endswith(".jar") and lib not in added_libraries:
-                classpath.append(os.path.join(libraries_path, lib))
-                added_libraries.add(lib)
-
-        return ":".join(classpath)
-
-    def show_launch_animation(self):
-        # 创建启动动画窗口
-        animation_window = tk.Toplevel(self.root)
-        animation_window.title("启动中...")
-        animation_window.geometry("300x200")
-
-        # 添加进度条
-        progress_label = tk.Label(animation_window, text="启动中...", font=("Helvetica", 16))
-        progress_label.pack(pady=20)
-
-        progress_var = tk.DoubleVar(value=0.0)
-        progress_bar = ttk.Progressbar(animation_window, variable=progress_var, maximum=100, length=200)
-        progress_bar.pack(pady=20)
-
-        # 添加挖矿动画
-        self.add_mining_animation(animation_window)
-
-        # 更新进度条
-        def update_progress():
-            for i in range(100):
-                progress_var.set(i + 1)
+        while True:
+            for message in messages:
+                mining_label.config(text=message)
                 animation_window.update_idletasks()
-                time.sleep(0.03)
-            animation_window.destroy()
+                time.sleep(2)
 
-        threading.Thread(target=update_progress).start()
+    threading.Thread(target=cycle_text).start()
 
-    def add_mining_animation(self, animation_window):
-        # 这里可以添加一个简单的挖矿动画
-        # 例如，使用Label显示挖矿的文本
-        mining_label = tk.Label(animation_window, text="您的每一次启动都是对作者的支持\n开发团队只有科技猫一个人\n关注scicat科技猫新号查看后续更新\n开发不易，感谢支持", font=("Helvetica", 10), wraplength=280)
-        mining_label.pack(pady=20)
+def check_game_files(self):
+    # 检查游戏文件完整性
+    version = self.version.get()
+    version_dir = os.path.join(self.game_dir.get(), "versions", version)
+    if not os.path.exists(version_dir):
+        os.makedirs(version_dir, exist_ok=True)
+        self.download_version_files(version)
 
-        # 循环显示文本
-        def cycle_text():
-            messages = [
-                "您的每一次启动都是对作者的支持",
-                "开发团队只有科技猫一个人",
-                "关注scicat科技猫新号查看后续更新",
-                "开发不易，感谢支持"
-            ]
-            while True:
-                for message in messages:
-                    mining_label.config(text=message)
-                    animation_window.update_idletasks()
-                    time.sleep(2)
+def download_version_files(self, version):
+    # 下载游戏jar文件和依赖库文件
+    version_url = f"https://launchermeta.mojang.com/mc/game/{version}/{version}.json"
+    response = requests.get(version_url)
+    response.raise_for_status()
+    version_data = response.json()
+    
+    # 下载游戏jar文件
+    jar_url = version_data["downloads"]["client"]["url"]
+    self.download_file(jar_url, os.path.join(self.game_dir.get(), "versions", version, f"{version}.jar"))
+    
+    # 下载依赖库文件
+    for lib in version_data["libraries"]:
+        if lib["name"].endswith(".jar"):
+            lib_url = lib["downloads"]["artifact"]["url"]
+            lib_name = lib["name"].rsplit('@', 1)[0] + '.jar'
+            lib_path = os.path.join(self.game_dir.get(), "libraries", lib_name)
+            self.download_file(lib_url,lib_path)
+                # 下载资产索引文件
+    assets_url = version_data["assetIndex"]["url"]
+    self.download_file(assets_url, os.path.join(self.game_dir.get(), "assets", "indexes", "official.json"))
 
-        threading.Thread(target=cycle_text).start()
+def download_file(self, url, destination):
+    # 下载文件并保存到指定路径
+    try:
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        with open(destination, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        messagebox.showinfo("下载成功", f"文件 {os.path.basename(destination)} 下载成功")
+    except requests.RequestException as e:
+        messagebox.showerror("下载失败", f"文件下载失败: {e}")
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MinecraftLauncher(root)
-    root.mainloop()
+def verify_files(self):
+    # 验证文件完整性
+    version = self.version.get()
+    version_json_path = os.path.join(self.game_dir.get(), "versions", version, f"{version}.json")
+    if os.path.exists(version_json_path):
+        with open(version_json_path, 'r') as f:
+            version_data = json.load(f)
+            for lib in version_data["libraries"]:
+                lib_file = lib["downloads"]["artifact"]["path"]
+                if not os.path.exists(os.path.join(self.game_dir.get(), "libraries", lib_file)):
+                    return False
+    return True
+    if name == "main":
+ root = tk.Tk()
+ app = MinecraftLauncher(root)
+ root.mainloop()
