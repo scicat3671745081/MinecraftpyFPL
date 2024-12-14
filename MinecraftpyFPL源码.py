@@ -11,6 +11,7 @@ import time
 from tkinter import simpledialog
 import winsound  # Windows自带的声音库
 import shutil
+import pyperclip  # 确保导入pyperclip模块
 import traceback
 
 # 检查Python是否安装
@@ -189,8 +190,8 @@ class MinecraftLauncher:
 
     def change_skin(self):
         skin_path = filedialog.askopenfilename(title="选择皮肤", filetypes=[("Image files", "*.png *.jpg")])
-        if skin_path:
-            skin_name = os.path.basename(skin_path)
+ if skin_path:
+ skin_name = os.path.basename(skin_path)
  skin_dest = os.path.join(self.skins_dir, skin_name)
  shutil.copy(skin_path, skin_dest)
  self.config["skin"] = skin_name
@@ -370,12 +371,19 @@ def download_file(self, url, destination):
         messagebox.showinfo("下载完成", "文件下载完成。")
     except requests.RequestException as e:
         messagebox.showerror("下载失败", f"文件下载失败: {e}")
-        self.retry_download()
+        self.retry_download(url, destination)
 
-def retry_download(self):
+def retry_download(self, url, destination):
     def retry():
-        # 这里可以添加重试下载的逻辑
-        pass
+        try:
+            print("重试下载...")
+            self.download_file(url, destination)
+        except Exception as e:
+            print(f"重试下载失败: {e}")
+            messagebox.showerror("下载失败", f"重试下载失败: {e}")
+            # 可以设置最大重试次数，或者根据需要再次调用retry_download
+            # self.retry_download(url, destination)
+
     button_retry = tk.Button(self.root, text="尝试重新连接", command=retry)
     button_retry.pack(pady=10)
 
@@ -390,10 +398,9 @@ def show_launch_animation(self):
     progress_label.pack(pady=20)
 
     progress_var = tk.DoubleVar(value=0.0)
-    progress_bar = ttk.Progressbar(animation_window, variable=progress_var, maximum=100, length=200)
-    progress_bar.pack(pady=20)
-
-    # 添加挖矿动画
+    progress_bar = ttk.Progressbar(animation_window, variable=progressbar, maximum=100, length=200)
+ progress_bar.pack(pady=20)
+     # 添加挖矿动画
     self.add_mining_animation(animation_window)
 
     # 更新进度条
@@ -405,7 +412,8 @@ def show_launch_animation(self):
         animation_window.destroy()
 
     threading.Thread(target=update_progress).start()
-    def add_mining_animation(self, animation_window):
+
+def add_mining_animation(self, animation_window):
     # 这里可以添加一个简单的挖矿动画
     # 例如，使用Label显示挖矿的文本
     mining_label = tk.Label(animation_window, text="您的每一次启动都是对作者的支持\n开发团队目前只有科技猫和bilibili：-价值5个硬币的昵称-\n关注scicat科技猫新号和-价值5个硬币的昵称-查看后续更新\n开发不易，感谢支持", font=("Helvetica", 10), wraplength=280)
