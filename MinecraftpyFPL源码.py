@@ -162,7 +162,7 @@ class MinecraftLauncher:
 
         tk.Label(self.game_settings_frame, text="分辨率高度:").grid(row=9, column=0, sticky=tk.W)
         self.resolution_height = tk.IntVar(value=self.config.get("resolution_height", 480))
-        entry_resolution_height = tk.Entry(self.game_settings_frame, textvariable=selfolution_height, width=10)
+        entry_resolution_height = tk.Entry(self.game_settings_frame, textvariable=self.resolution_height, width=10)
         entry_resolution_height.grid(row=9, column=1)
 
         tk.Button(self.game_settings_frame, text="启动游戏", command=self.start_game).grid(row=10, column=1, pady=10)
@@ -251,7 +251,7 @@ class MinecraftLauncher:
         settings_window.geometry("300x200")
 
         tk.Label(settings_window, text="自动启动：").pack(pady=5)
-        self.auto_var = tk.BooleanVar(value=self.config.get("auto_start", False))
+        self.auto_start_var = tk.BooleanVar(value=self.config.get("auto_start", False))
         auto_start_checkbox = tk.Checkbutton(settings_window, variable=self.auto_start_var)
         auto_start_checkbox.pack()
 
@@ -365,19 +365,18 @@ class MinecraftLauncher:
 
         # 下载依赖库文件
         for lib in version_data["libraries"]:
-            lib_url = lib["downloads"]["artifact"]["url            lib_path = os.path.join(self.libraries_dir, lib["downloads"]["artifact"]["path"])
+            lib_url = lib["downloads"]["artifact"]["url"]
+            lib_path = os.path.join(self.libraries_dir, lib["downloads"]["artifact"]["path"])
             try:
                 self.download_file(lib_url, lib_path)
             except Exception as e:
                 messagebox.showerror("下载失败", f"下载依赖库文件失败: {e}")
 
-        # 下载资产索引文件
         assets_url = version_data["assetIndex"]["url"]
         try:
             self.download_file(assets_url, os.path.join(self.assets_dir, "indexes", "official.json"))
         except Exception as e:
             messagebox.showerror("下载失败", f"下载资产索引文件失败: {e}")
-
     def download_file(self, url, destination):
         # 下载文件并保存到指定路径
         try:
@@ -483,4 +482,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = MinecraftLauncher(root)
     root.mainloop()
-
