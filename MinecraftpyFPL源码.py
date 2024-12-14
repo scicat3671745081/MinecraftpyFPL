@@ -14,22 +14,14 @@ import shutil
 import pyperclip  # 确保导入pyperclip模块
 import traceback
 
-# 检查Python是否安装
-def check_python_installed():
-    try:
-        subprocess.run(["python", "--version"], check=True)
-        return True
-    except FileNotFoundError:
-        return False
-
 class MinecraftLauncher:
     def __init__(self, root):
         self.root = root
-        self.root.title("MinecraftpyFPL")
+        self.root.title("Minecraft Launcher")
         self.root.geometry("600x400")
         
         # 检查Python是否安装
-        if not check_python_installed():
+        if not self.check_python_installed():
             messagebox.showerror("错误", "未检测到Python，请安装Python后再运行此程序。")
             webbrowser.open("https://www.python.org/downloads/")
             sys.exit()
@@ -38,7 +30,7 @@ class MinecraftLauncher:
         self.app_dir = os.path.dirname(os.path.abspath(__file__))
         
         # 数据文件夹路径
-        self.data_dir = os.path.join(self.app_dir, "MinecraftpyFPL")
+        self.data_dir = os.path.join(self.app_dir, "MinecraftLauncher")
         self.logs_dir = os.path.join(self.data_dir, "logs")
         self.versions_dir = os.path.join(self.data_dir, "versions")
         self.libraries_dir = os.path.join(self.data_dir, "libraries")
@@ -70,6 +62,13 @@ class MinecraftLauncher:
         
         # 创建界面
         self.create_widgets()
+
+    def check_python_installed(self):
+        try:
+            subprocess.run(["python", "--version"], check=True, stdout=subprocess.DEVNULL)
+            return True
+        except FileNotFoundError:
+            return False
 
     def load_config(self):
         if os.path.exists(self.config_file):
@@ -322,7 +321,7 @@ def start_game(self):
         "official",
         "--width",
         str(width),
-        "--height",
+        "-height",
         str(height),
         version_data["mainClass"]
     ]
@@ -341,21 +340,21 @@ def get_classpath(self, version_data):
 
 def download_version_files(self, version):
     # 下载游戏jar文件和依赖库文件
-    version_url = f"https://launchermeta.mojang.com/mc/game/{version}/{version}.json"
+    version_url = f"https://launcher.meta.mojang.com/mc/game/{version}/{version}.json"
     response = requests.get(version_url)
     response.raise_for_status()
     version_data = response.json()
-    
+
     # 下载游戏jar文件
     jar_url = version_data["downloads"]["client"]["url"]
     self.download_file(jar_url, os.path.join(self.versions_dir, version, f"{version}.jar"))
-    
+
     # 下载依赖库文件
     for lib in version_data["libraries"]:
         lib_url = lib["downloads"]["artifact"]["url"]
         lib_path = os.path.join(self.libraries_dir, lib["downloads"]["artifact"]["path"])
         self.download_file(lib_url, lib_path)
-    
+
     # 下载资产索引文件
     assets_url = version_data["assetIndex"]["url"]
     self.download_file(assets_url, os.path.join(self.assets_dir, "indexes", "official.json"))
@@ -368,6 +367,7 @@ def download_file(self, url, destination):
         with open(destination, 'wb') as f:
             for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
+        winsound.Beep(440)  # 播放下载完成的声音
         messagebox.showinfo("下载完成", "文件下载完成。")
     except requests.RequestException as e:
         messagebox.showerror("下载失败", f"文件下载失败: {e}")
@@ -376,13 +376,10 @@ def download_file(self, url, destination):
 def retry_download(self, url, destination):
     def retry():
         try:
-            print("重试下载...")
             self.download_file(url, destination)
         except Exception as e:
-            print(f"重试下载失败: {e}")
             messagebox.showerror("下载失败", f"重试下载失败: {e}")
-            # 可以设置最大重试次数，或者根据需要再次调用retry_download
-            # self.retry_download(url, destination)
+            self.retry_download(url, destination)  # 递归调用以实现重试机制
 
     button_retry = tk.Button(self.root, text="尝试重新连接", command=retry)
     button_retry.pack(pady=10)
@@ -398,7 +395,7 @@ def show_launch_animation(self):
     progress_label.pack(pady=20)
 
     progress_var = tk.DoubleVar(value=0.0)
-    progress_bar = ttk.Progressbar(animation_window, variable=progressbar, maximum=100, length=200)
+    progress_bar = ttk.Progressbar(animation_window, variable=progress_var, maximum=100, length=200)
  progress_bar.pack(pady=20)
      # 添加挖矿动画
     self.add_mining_animation(animation_window)
@@ -416,7 +413,7 @@ def show_launch_animation(self):
 def add_mining_animation(self, animation_window):
     # 这里可以添加一个简单的挖矿动画
     # 例如，使用Label显示挖矿的文本
-    mining_label = tk.Label(animation_window, text="您的每一次启动都是对作者的支持\n开发团队目前只有科技猫和bilibili：-价值5个硬币的昵称-\n关注scicat科技猫新号和-价值5个硬币的昵称-查看后续更新\n开发不易，感谢支持", font=("Helvetica", 10), wraplength=280)
+    mining_label = tk.Label(animation_window, text="您的每一次启动都是对作者的支持\n开发团队目前只有科技猫和bilibilibili：-价值5个硬币的昵称-\n关注scicat科技猫新号和-价值5个硬币的昵称-查看后续更新\n开发不易，感谢支持", font=("Helvetica", 10), wraplength=280)
     mining_label.pack(pady=20)
 
     # 循环显示文本
