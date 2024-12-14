@@ -167,7 +167,6 @@ class MinecraftLauncher:
         tk.Button(self.game_settings_frame, text="启动游戏", command=self.start_game).grid(row=10, column=1, pady=10)
         
         tk.Button(self.game_settings_frame, text="关于作者", command=self.about_author).grid(row=11, column=1, pady=10)
-
     def validate_memory(self, P, C, V):
         try:
             if V == "" or int(V) <= 0:
@@ -451,7 +450,7 @@ def copy_log_and_restart(self, error_log):
     subprocess.Popen(restart_cmd, shell=True)
     # 关闭当前窗口
     self.root.destroy()
-    if name == "main":
- root = tk.Tk()
- app = MinecraftLauncher(root)
- root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = MinecraftLauncher(root)
+    root.mainloop()
