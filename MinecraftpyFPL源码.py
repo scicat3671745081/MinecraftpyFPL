@@ -1,4 +1,4 @@
- import tkinter as tk
+import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import subprocess
 import os
@@ -14,7 +14,7 @@ import threading
 class MinecraftLauncher:
     def __init__(self, root):
         self.root = root
-        self.root.title("MinecraftpyFPL")
+        self.root.title("Minecraft Launcher")
         self.root.geometry("600x400")
 
         # 数据文件夹
@@ -48,7 +48,10 @@ class MinecraftLauncher:
                 "options_lang": "",
                 "custom_jvm_params": "",
                 "completes_file": True,
-                "out_jvm_params": False
+                "out_jvm_params": False,
+                "background_style": "white",  # 默认背景为白色
+                "resolution_width": 800,
+                "resolution_height": 600
             }
 
     def save_config(self):
@@ -66,6 +69,17 @@ class MinecraftLauncher:
             return []
 
     def create_widgets(self):
+        # 菜单栏
+        menu_bar = tk.Menu(self.root)
+        self.root.config(menu=menu_bar)
+
+        # 设置菜单
+        settings_menu = tk.Menu(menu_bar, tearoff=0)
+        menu_bar.add_cascade(label="设置", menu=settings_menu)
+        settings_menu.add_command(label="背景设置", command=self.set_background)
+        settings_menu.add_command(label="内存设置", command=self.set_memory)
+        settings_menu.add_command(label="分辨率设置", command=self.set_resolution)
+
         # Java 路径选择
         tk.Label(self.root, text="Java 路径:").pack()
         tk.Entry(self.root, textvariable=self.java_path).pack()
@@ -312,7 +326,7 @@ class MinecraftLauncher:
             if asset_index_id == "":
                 asset_index_id = game_json.get("assetIndex").get("id")
         messagebox.showinfo("参数替换", "游戏启动参数拼接完成\n正在替换对应游戏启动参数...")
-               jvm_params = jvm_params.replace("${classpath}", class_path.strip(";") + "\"")  # 把-cp 参数内容换成拼接好的依赖路径
+        jvm_params = jvm_params.replace("${classpath}", class_path.strip(";") + "\"")  # 把-cp 参数内容换成拼接好的依赖路径
         jvm_params = jvm_params.replace("${library_directory}", f"\"{self.data_dir}/libraries\"", 1)  # 依赖文件夹路径
         jvm_params = jvm_params.replace("${assets_root}", f"\"{self.data_dir}/assets\"")  # 资源文件夹路径
         jvm_params = jvm_params.replace("${assets_index_name}", asset_index_id)  # 资源索引 id
@@ -404,6 +418,38 @@ class MinecraftLauncher:
             zip_object.extract(file, unzip_path)
         zip_object.close()
 
+    def set_background(self):
+        background_style = simpledialog.askstring("背景设置", "选择背景样式（白色/黑色/半透明）")
+        if background_style:
+            if background_style.lower() == "白色":
+                self.root.config(bg="white")
+            elif background_style.lower() == "黑色":
+                self.root.config(bg="black")
+            elif background_style.lower() == "半透明":
+                self.root.attributes('-alpha', 0.5)
+            self.config["background_style"] = background_style
+            self.save_config()
+
+    def set_memory(self):
+        memory_mode = simpledialog.askstring("内存设置", "选择内存模式（自动/手动）")
+        if memory_mode:
+            if memory_mode.lower() == "自动":
+                self.config["memory_mode"] = "auto"
+            elif memory_mode.lower() == "手动":
+                max_memory = simpledialog.askinteger("手动设置内存", "输入最大内存（MB）")
+                if max_memory:
+                    self.config["max_use_ram"] = str(max_memory)
+                    self.config["memory_mode"] = "manual"
+            self.save_config()
+
+    def set_resolution(self):
+        width = simpledialog.askinteger("分辨率设置 - 宽度", "输入宽度")
+        height = simpledialog.askinteger("分辨率设置 - 高度", "输入高度")
+        if width and height:
+            self.config["resolution_width"] = width
+            self.config["resolution_height"] = height
+            self.save_config()
+
     def download_manager(self, download_lists, max_thread):
         global download_list_, downloaded_list_
         download_list_len = len(download_lists)
@@ -436,7 +482,7 @@ class MinecraftLauncher:
                         path_name += f"{dir_name}/"
                         if not os.path.isdir(path_name):
                             os.makedirs(path_name)
-                file_size = int(requests.head(download_task0).headers["Content-Length"])
+                file = int(requests.head(download_task0).headers["Content-Length"])
                 half_size = file_size // 2
                 download_file = os.path.basename(download_task1)
                 part1_path = f"{download_file}.part1"
