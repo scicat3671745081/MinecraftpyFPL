@@ -1,75 +1,38 @@
-import tkinter as tk
+ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import subprocess
 import os
 import json
 import requests
-import webbrowser
-import sys
+import platform
+import uuid
+import hashlib
+import re
+import zipfile
 import threading
-import time
-from tkinter import simpledialog
-import winsound  # Windows 自带的声音库
-import shutil
-import pyperclip  # 确保导入 pyperclip 模块
-import traceback
-
 
 class MinecraftLauncher:
     def __init__(self, root):
         self.root = root
-        self.root.title("Minecraft Launcher")
+        self.root.title("MinecraftpyFPL")
         self.root.geometry("600x400")
 
-        # 检查 Python 是否安装
-        if not self.check_python_installed():
-            messagebox.showerror("错误", "未检测到 Python，请安装 Python 后再运行此程序。")
-            webbrowser.open("https://www.python.org/downloads/")
-            sys.exit()
-
-        # 软件所在文件夹
-        self.app_dir = os.path.dirname(os.path.abspath(__file__))
-
-        # 数据文件夹路径
-        self.data_dir = os.path.join(self.app_dir, "MinecraftLauncher")
-        self.logs_dir = os.path.join(self.data_dir, "logs")
-        self.versions_dir = os.path.join(self.data_dir, "versions")
-        self.libraries_dir = os.path.join(self.data_dir, "libraries")
-        self.skins_dir = os.path.join(self.data_dir, "skins")
-        self.mods_dir = os.path.join(self.data_dir, "mods")
-        self.assets_dir = os.path.join(self.data_dir, "assets")
-        self.downloads_dir = os.path.join(self.data_dir, "downloads")  # 新建下载文件夹
+        # 数据文件夹
+        self.data_dir = "MinecraftLauncherData"
         os.makedirs(self.data_dir, exist_ok=True)
-        os.makedirs(self.logs_dir, exist_ok=True)
-        os.makedirs(self.versions_dir, exist_ok=True)
-        os.makedirs(self.libraries_dir, exist_ok=True)
-        os.makedirs(self.skins_dir, exist_ok=True)
-        os.makedirs(self.mods_dir, exist_ok=True)
-        os.makedirs(self.assets_dir, exist_ok=True)
-        os.makedirs(self.downloads_dir, exist_ok=True)
 
-        # 配置文件路径
+        # 配置文件
         self.config_file = os.path.join(self.data_dir, "config.json")
         self.load_config()
 
-        # 设置 Java 路径
-        self.java_path = tk.StringVar(value=self.config.get("java_path", "java"))
+        # Java 路径
+        self.java_path = tk.StringVar()
 
-        # Minecraft 版本列表
+        # Minecraft 版本
         self.versions = self.get_versions()
-
-        # 启动次数计数器
-        self.startup_count = self.config.get("startup_count", 0)
 
         # 创建界面
         self.create_widgets()
-
-    def check_python_installed(self):
-        try:
-            subprocess.run(["python", "--version"], check=True, stdout=subprocess.DEVNULL)
-            return True
-        except FileNotFoundError:
-            return False
 
     def load_config(self):
         if os.path.exists(self.config_file):
@@ -77,21 +40,20 @@ class MinecraftLauncher:
                 self.config = json.load(f)
         else:
             self.config = {
-                "java_path": "java",
-                "memory_mode": "auto",
-                "max_memory": "2048",
-                "skin": "default",
-                "resolution_width": 854,
-                "resolution_height": 480,
-                "auto_start": False,
-                "language": "English",
-                "background_style": "default"
+                "java_path": "",
+                "selected_version": "",
+                "max_use_ram": "2048",
+                "player_name": "",
+                "access_token": "None",
+                "options_lang": "",
+                "custom_jvm_params": "",
+                "completes_file": True,
+                "out_jvm_params": False
             }
-            self.save_config()
 
     def save_config(self):
         with open(self.config_file, 'w') as f:
-            json.dump(self.config, f, indent=4)
+            json.dump(self.config, f)
 
     def get_versions(self):
         try:
@@ -104,379 +66,397 @@ class MinecraftLauncher:
             return []
 
     def create_widgets(self):
-        self.root.tk_setPalette(background='#ffffff')
+        # Java 路径选择
+        tk.Label(self.root, text="Java 路径:").pack()
+        tk.Entry(self.root, textvariable=self.java_path).pack()
+        tk.Button(self.root, text="浏览", command=self.browse_java_path).pack()
 
-        # 创建菜单栏
-        menu_bar = tk.Menu(self.root)
-        self.root.config(menu=menu_bar)
+        # 版本选择
+        tk.Label(self.root, text="Minecraft 版本:").pack()
+        self.version_var = tk.StringVar()
+        ttk.Combobox(self.root, textvariable=self.version_var, values=self.versions).pack()
 
-        # 创建主菜单
-        main_menu = tk.Menu(menu_bar, tearoff=0)
-        menu_bar.add_cascade(label="主菜单", menu=main_menu)
-        main_menu.add_command(label="关于软件/作者", command=self.about_author)
-        main_menu.add_command(label="下载", command=self.open_resource_page)
-        main_menu.add_command(label="设置", command=self.open_settings)
+        # 最大内存设置
+        tk.Label(self.root, text="最大使用内存(MB):").pack()
+        self.max_use_ram_var = tk.StringVar(value=self.config["max_use_ram"])
+        tk.Entry(self.root, textvariable=self.max_use_ram_var).pack()
 
-        # 创建游戏设置界面
-        self.game_settings_frame = tk.Frame(self.root)
-        self.game_settings_frame.pack(fill=tk.BOTH, expand=True)
+        # 玩家名称输入
+        tk.Label(self.root, text="玩家名称:").pack()
+        self.player_name_var = tk.StringVar(value=self.config["player_name"])
+        tk.Entry(self.root, textvariable=self.player_name_var).pack()
 
-        tk.Label(self.game_settings_frame, text="Java路径:").grid(row=0, column=0, sticky=tk.W)
-        entry_java_path = tk.Entry(self.game_settings_frame, textvariable=self.java_path, width=40)
-        entry_java_path.grid(row=0, column=1)
-        tk.Button(self.game_settings_frame, text="浏览", command=self.browse_java_path).grid(row=0, column=2)
+        # 完整性检查选项
+        self.completes_file_var = tk.BooleanVar(value=self.config["completes_file"])
+        tk.Checkbutton(self.root, text="检查文件完整性", variable=self.completes_file_var).pack()
 
-        tk.Label(self.game_settings_frame, text="Minecraft版本:").grid(row=1, column=0, sticky=tk.W)
-        self.version = tk.StringVar(value=self.versions[0] if self.versions else "")
-        version_dropdown = ttk.Combobox(self.game_settings_frame, textvariable=self.version, values=self.versions, state="readonly")
-        version_dropdown.grid(row=1, column=1)
-        version_dropdown.current(0)
+        # 输出 JVM 参数选项
+        self.out_jvm_params_var = tk.BooleanVar(value=self.config["out_jvm_params"])
+        tk.Checkbutton(self.root, text="输出 JVM 参数", variable=self.out_jvm_params_var).pack()
 
-        tk.Button(self.game_settings_frame, text="更改皮肤", command=self.change_skin).grid(row=2, column=1, pady=10)
-
-        tk.Button(self.game_settings_frame, text="更改背景", command=self.change_background).grid(row=3, column=1, pady=10)
-
-        tk.Button(self.game_settings_frame, text="安装插件/模组", command=self.install_plugin_mod).grid(row=4, column=1, pady=10)
-
-        # 内存分配
-        tk.Label(self.game_settings_frame, text="内存分配:").grid(row=5, column=0, sticky=tk.W)
-        self.memory_mode = tk.StringVar(value=self.config.get("memory_mode", "auto"))
-        memory_mode_auto = tk.Radiobutton(self.game_settings_frame, text="自动", variable=self.memory_mode, value="auto")
-        memory_mode_auto.grid(row=5, column=1)
-        memory_mode_manual = tk.Radiobutton(self.game_settings_frame, text="手动", variable=self.memory_mode, value="manual")
-        memory_mode_manual.grid(row=6, column=1)
-
-        if self.memory_mode.get() == "manual":
-            self.max_memory = tk.StringVar(value=str(self.config.get("max_memory", 2048)))
-            tk.Label(self.game_settings_frame, text="最大内存(MB):").grid(row=7, column=0, sticky=tk.W)
-            entry_max_memory = tk.Entry(self.game_settings_frame, textvariable=self.max_memory, width=10)
-            entry_max_memory.grid(row=7, column=1)
-            entry_max_memory.validate = self.validate_memory
-            entry_max_memory.validate_command = entry_max_memory.register(self.validate_memory)
-
-        # 分辨率设置
-        tk.Label(self.game_settings_frame, text="分辨率宽度:").grid(row=8, column=0, sticky=tk.W)
-        self.resolution_width = tk.IntVar(value=self.config.get("resolution_width", 854))
-        entry_resolution_width = tk.Entry(self.game_settings_frame, textvariable=self.resolution_width, width=10)
-        entry_resolution_width.grid(row=8, column=1)
-
-        tk.Label(self.game_settings_frame, text="分辨率高度:").grid(row=9, column=0, sticky=tk.W)
-        self.resolution_height = tk.IntVar(value=self.config.get("resolution_height", 480))
-        entry_resolution_height = tk.Entry(self.game_settings_frame, textvariable=self.resolution_height, width=10)
-        entry_resolution_height.grid(row=9, column=1)
-
-        tk.Button(self.game_settings_frame, text="启动游戏", command=self.start_game).grid(row=10, column=1, pady=10)
-
-        tk.Button(self.game_settings_frame, text="关于作者", command=self.about_author).grid(row=11, column=1, pady=10)
-
-    def validate_memory(self, P, C, V):
-        try:
-            if V == "" or int(V) <= 0:
-                messagebox.showerror("错误", "内存大小必须大于 0")
-                return False
-            if '.' in V:
-                messagebox.showerror("错误", "内存大小不能包含小数点")
-                return False
-            return True
-        except ValueError:
-            messagebox.showerror("错误", "内存大小必须为数字")
-            return False
+        # 启动按钮
+        tk.Button(self.root, text="启动游戏", command=self.start_game).pack()
 
     def browse_java_path(self):
         file_path = filedialog.askopenfilename()
         if file_path:
             self.java_path.set(file_path)
-            self.save_config()
-
-    def change_skin(self):
-        skin_path = filedialog.askopenfilename(title="选择皮肤", filetypes=[("Image files", "*.png *.jpg")])
-        if skin_path:
-            skin_name = os.path.basename(skin_path)
-            skin_dest = os.path.join(self.skins_dir, skin_name)
-            shutil.copy(skin_path, skin_dest)
-            self.config["skin"] = skin_name
-            self.save_config()
-
-    def change_background(self):
-        background_style = simpledialog.askstring("更改背景", "输入背景样式（深色/半透明）或选择背景图片：")
-        if background_style:
-            if background_style.lower() in ["深色", "半透明"]:
-                self.config["background_style"] = background_style.lower()
-                self.apply_background_style()
-            else:
-                background_image = filedialog.askopenfilename(title="选择背景图片", filetypes=[("Image files", "*.png *.jpg *.jpeg *.bmp")])
-                if background_image:
-                    self.config["background_style"] = background_image
-                    self.apply_background_style()
-            self.save_config()
-
-    def apply_background_style(self):
-        if self.config["background_style"] == "深色":
-            self.root.config(bg="#333")
-        elif self.config["background_style"] == "半透明":
-            self.root.attributes('-alpha', 0.5)  # 设置窗口半透明
-        else:
-            try:
-                # 尝试设置背景图片
-                background_image = tk.PhotoImage(file=self.config["background_style"])
-                background_label = tk.Label(self.root, image=background_image)
-                background_label.place(x=0, y=0, relwidth=1, relheight=1)
-            except Exception as e:
-                messagebox.showerror("错误", f"设置背景图片失败: {e}")
-
-    def install_plugin_mod(self):
-        plugin_mod_path = filedialog.askopenfilename(title="选择插件/模组", filetypes=[("Jar files", "*.jar")])
-        if plugin_mod_path:
-            plugin_mod_dir = self.mods_dir
-            os.makedirs(plugin_mod_dir, exist_ok=True)
-            plugin_mod_name = os.path.basename(plugin_mod_path)
-            plugin_mod_dest = os.path.join(plugin_mod_dir, plugin_mod_name)
-            try:
-                shutil.copy(plugin_mod_path, plugin_mod_dest)
-                messagebox.showinfo("成功", "插件/模组安装成功")
-            except Exception as e:
-                messagebox.showerror("错误", f"安装插件/模组失败: {e}")
-
-    def about_author(self):
-        messagebox.showinfo("关于作者", "感谢使用 MinecraftpyFPL\n作者邮箱：3671745081@qq.com")
-        if messagebox.askyesno("打赏支持", "是否要打赏支持作者？"):
-            webbrowser.open('https://b23.tv/LyN8NqX')
-
-    def open_resource_page(self):
-        webbrowser.open("https://www.mcmod.cn/")
-
-    def open_settings(self):
-        settings_window = tk.Toplevel(self.root)
-        settings_window.title("设置")
-        settings_window.geometry("300x200")
-
-        tk.Label(settings_window, text="自动启动：").pack(pady=5)
-        self.auto_start_var = tk.BooleanVar(value=self.config.get("auto_start", False))
-        auto_start_checkbox = tk.Checkbutton(settings_window, variable=self.auto_start_var)
-        auto_start_checkbox.pack()
-
-        tk.Label(settings_window, text="语言设置：").pack(pady=5)
-        language_var = tk.StringVar(value=self.config.get("language", "English"))
-        language_dropdown = ttk.Combobox(settings_window, textvariable=language_var, values=["English", "中文"], state="readonly")
-        language_dropdown.pack()
-        language_dropdown.current(self.config.get("language", "English") == "中文")
-
-        def save_settings():
-            self.config["auto_start"] = self.auto_start_var.get()
-            self.config["language"] = language_var.get()
-            self.save_config()
-            settings_window.destroy()
-
-        tk.Button(settings_window, text="保存设置", command=save_settings).pack(pady=10)
 
     def start_game(self):
-        self.startup_count += 1
+        java_path = self.java_path.get()
+        selected_version = self.version_var.get()
+        max_use_ram = self.max_use_ram_var.get()
+        player_name = self.player_name_var.get()
+        completes_file = self.completes_file_var.get()
+        out_jvm_params = self.out_jvm_params_var.get()
+
+        if not java_path:
+            messagebox.showerror("错误", "请选择 Java 路径")
+            return
+
+        if not selected_version:
+            messagebox.showerror("错误", "请选择 Minecraft 版本")
+            return
+
+        if bool(re.search(pattern=r"[^a-zA-Z0-9\-_+.]", string=player_name)):
+            messagebox.showerror("错误", "玩家名称不能包含数字、减号、下划线、加号或英文句号(小数点)以外的字符")
+            return
+
+        self.config["java_path"] = java_path
+        self.config["selected_version"] = selected_version
+        self.config["max_use_ram"] = max_use_ram
+        self.config["player_name"] = player_name
+        self.config["completes_file"] = completes_file
+        self.config["out_jvm_params"] = out_jvm_params
         self.save_config()
 
-        if self.startup_count >= 10:
-            messagebox.showinfo("支持作者", "您已启动游戏 10 次，如果您喜欢这个启动器，请支持作者：\nhttps://b23.tv/kmfqwBQ")
-            if messagebox.askyesno("重置计数器", "是否重置启动次数计数器？"):
-                self.startup_count = 0
-                self.save_config()
+        try:
+            self.launch_minecraft(java_path, selected_version, max_use_ram, player_name, completes_file, out_jvm_params)
+        except Exception as e:
+            messagebox.showerror("错误", str(e))
 
-        java_path = self.java_path.get()
-        version = self.version.get()
+    def launch_minecraft(self, java_path, version_name, max_use_ram, player_name, completes_file, out_jvm_params):
+        jvm_params = ""
+        jvm_params_list = []
+        delimiter = ":"  # Class path 分隔符
+        natives_list = []
+        jvm_params_list.append(f"\"{java_path}\"")
+        system_type = platform.system()  # 获取系统类型
 
-        if not os.path.exists(os.path.join(self.versions_dir, version, f"{version}.jar")):
-            messagebox.showerror("错误", "找不到 Minecraft 版本文件")
-            return
-
-        if not os.path.exists(java_path):
-            messagebox.showerror("错误", "找不到 Java 路径")
-            return
-
-        version_json_path = os.path.join(self.versions_dir, version, f"{version}.json")
-        if not os.path.exists(version_json_path):
-            self.download_version_files(version)
-
-        self.show_launch_animation()
-
-        # 从{version}.json 构建启动参数
-        with open(version_json_path, 'r') as f:
-            version_data = json.load(f)
-
-        classpath = self.get_classpath(version_data)
-        assets_root = self.assets_dir
-        assets_index = os.path.join(assets_root, "indexes", "official.json")
-        assets = os.path.join(assets_root, "objects")
-
-        # 根据内存分配模式设置 JVM 参数
-        if self.memory_mode.get() == "auto":
-            max_memory = self.config.get("max_memory", "2048") + "m"
+        if system_type == "Windows":  # 判断是否为 Windows
+            messagebox.showinfo("系统类型", "Windows")
+            system_type = "windows"
+            delimiter = ";"
+            jvm_params_list.append(" -XX:HeapDumpPath=MojangTricksIntelDriversForPerformance_javaw.exe_minecraft.exe.heapdump")
+            if platform.release() == "10":  # 判断 Windows 版本是否为 10(11 返回的也是 10)
+                jvm_params_list.append(" -Dos.name=\"Windows 10\" -Dos.version=10.0")
+            if "64" in platform.machine():  # 判断是否为 64 位
+                jvm_params_list.append(" -Xms256M")
+            else:
+                jvm_params_list.append(" -Xss256M")
+        elif system_type == "Linux":  # 判断是否为 Linux
+            messagebox.showinfo("系统类型", "Linux")
+            system_type = "linux"
+            jvm_params_list.append(f" -Xms256M")
+        elif system_type == "Darwin":  # 判断是否为 MacOS(OSX)
+            messagebox.showinfo("系统类型", "MacOS")
+            system_type = "osx"
+            jvm_params_list.append(f" -XstartOnFirstThread -Xms256M")
         else:
-            max_memory = self.max_memory.get() + "m"
+            raise Exception("您的系统不是 Windows、Linux、MacOS(OSX)")
 
-        # 根据分辨率设置游戏窗口大小
-        width = self.resolution_width.get()
-        height = self.resolution_height.get()
+        jvm_params_list.append(f" -Xmx{max_use_ram}M -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true")
+        jvm_params += "".join(jvm_params_list)
+        jvm_params_list.clear()
 
-        args = [
-            java_path,
-            "-Xmx" + max_memory,
-            "-Xms" + max_memory,
-            "-Djava.library.path=" + os.path.join(self.versions_dir, version, "natives"),
-            "-cp",
-            classpath,
-            "--version",
-            version,
-            "--gameDir",
-            self.data_dir,
-            "--assetsDir",
-            assets,
-            "--assetIndex",
-            "official",
-            "--width",
-            str(width),
-            "-height",
-            str(height),
-            version_data["mainClass"]
-        ]
+        if self.config["custom_jvm_params"]!= "":
+            for a_jvm_param in self.config["custom_jvm_params"].split(" "):
+                if a_jvm_param!= "":
+                    jvm_params_list.append(f" {a_jvm_param.replace(' ', '')}")
+            jvm_params += "".join(jvm_params_list)
+            jvm_params_list.clear()
 
-        try:
-            subprocess.run(args, cwd=os.path.join(self.versions_dir, version))
-        except Exception as e:
-            self.handle_error(e)
+        download_lists = []
+        with open(f"{self.data_dir}/versions/{version_name}/{version_name}.json", "r", encoding="utf-8") as version_json:  # 读取版本 json
+            version_json = json.loads(version_json.read())
 
-    def get_classpath(self, version_data):
-        classpath = [os.path.join(self.versions_dir, version_data["id"], version_data["id"] + ".jar")]
-        for lib in version_data["libraries"]:
-            lib_path = os.path.join(self.libraries_dir, lib["downloads"]["artifact"]["path"])
-            classpath.append(lib_path)
-        return ":".join(classpath)
+        if completes_file:
+            messagebox.showinfo("完整性检查", "正在检查当前版本需要补全的依赖库文件...")
+            for libraries in version_json.get("libraries"):  # 检测补全 libraries
+                libraries_path = f"{self.data_dir}/libraries/{self.name_to_path(name=libraries.get('name'))}"
+                if not os.path.isfile(libraries_path):
+                    download_lists.append([f"https://bmclapi2.bangbang93.com/{self.name_to_path(name=libraries.get('name'))}", libraries_path])
+            messagebox.showinfo("完整性检查", "当前版本需要补全的依赖库文件检查完毕")
+        else:
+            messagebox.showinfo("完整性检查", "已跳过文件完整性检查")
 
-    def download_version_files(self, version):
-        # 下载游戏 jar 文件和依赖库文件
-        version_url = f"https://launcher.meta.mojang.com/mc/game/{version}/{version}.json"
-        response = requests.get(version_url)
-        response.raise_for_status()
-        version_data = response.json()
+        find_version = False
+        if version_json.get("inheritsFrom") is not None:  # 判断是否是有 Mod 加载器的版本
+            messagebox.showinfo("继承检查", "当前版本带有模组加载器, 正在加载原版游戏 Json 文件")
+            for game_versions in os.listdir(f"{self.data_dir}/versions"):
+                with open(f"{self.data_dir}/versions/{game_versions}/{game_versions}.json", "r", encoding="utf-8") as open_game_json:
+                    game_json = json.loads(open_game_json.read())
+                if game_json.get("id") == version_json.get("inheritsFrom"):
+                    messagebox.showinfo("继承检查", "原版游戏 Json 文件加载完毕")
+                    find_version = True
+                    if completes_file:
+                        messagebox.showinfo("完整性检查", "正在检查原版游戏需要补全的依赖库文件...")
+                        for libraries in game_json.get("libraries"):  # 检测补全 libraries
+                            libraries_path = f"{self.data_dir}/libraries/{self.name_to_path(name=libraries.get('name'))}"
+                            if not os.path.isfile(libraries_path):
+                                download_lists.append([f"https://bmclapi2.bangbang93.com/{self.name_to_path(name=libraries.get('name'))}", libraries_path])
+                        messagebox.showinfo("完整性检查", "原版游戏需要补全的依赖库文件检查完毕")
+                    break
+            if not find_version:
+                raise Exception("找不到该版本的原版游戏, 请确认原版游戏已正确安装")
 
-        # 下载游戏 jar 文件
-        jar_url = version_data["downloads"]["client"]["url"]
-        try:
-            self.download_file(jar_url, os.path.join(self.versions_dir, version, f"{version}.jar"))
-        except Exception as e:
-            messagebox.showerror("下载失败", f"下载游戏 jar 文件失败: {e}")
+        if completes_file:
+            if len(download_lists)!= 0:
+                max_thread = 64
+                messagebox.showinfo("下载管理", f"共有 {len(download_lists)} 个需要补全的文件, 限制最大下载线程为 {max_thread} 个线程\n开始下载需要补全的文件...")
+                self.download_manager(download_lists, max_thread)  # 启动下载管理器
+            else:
+                messagebox.showinfo("下载管理", "没有需要补全的文件")
 
-        # 下载依赖库文件
-        for lib in version_data["libraries"]:
-            lib_url = lib["downloads"]["artifact"]["url"]
-            lib_path = os.path.join(self.libraries_dir, lib["downloads"]["artifact"]["path"])
-            try:
-                self.download_file(lib_url, lib_path)
-            except Exception as e:
-                messagebox.showerror("下载失败", f"下载依赖库文件失败: {e}")
+        messagebox.showinfo("启动参数拼接", "正在拼接游戏启动参数...")
+        if version_json.get("arguments") is not None:
+            if version_json.get("arguments").get("jvm") is not None:
+                for arguments_jvm in version_json.get("arguments").get("jvm"):  # 遍历 json 中的 jvm 参数
+                    if type(arguments_jvm) is str:
+                        if "${classpath_separator}" in arguments_jvm:  # 这个判断针对 NeoForged 的,为-p 参数的依赖两边加双引号
+                            jvm_params_list.append(f" \"{arguments_jvm.replace(' ', '')}\"")
+                        else:
+                            jvm_params_list.append(f" {arguments_jvm.replace(' ', '')}")
+        elif version_json.get("minecraftArguments") is not None:
+            jvm_params_list.append(" -Djava.library.path=${natives_directory} -cp ${classpath}")
+        jvm_params += "".join(jvm_params_list)
+        jvm_params_list.clear()
+        main_class = ""
+        if "${classpath}" in jvm_params:
+            jvm_params = jvm_params.replace("${classpath}", "${classpath}" + f" {version_json.get('mainClass')}")  # 添加游戏主类
+        else:
+            main_class = version_json.get("mainClass")
+        version_jvm_params_list = []
+        if version_json.get("arguments") is not None:
+            for arguments_game in version_json.get("arguments").get("game"):  # 遍历 json 中的 jvm 参数
+                if type(arguments_game) is str:
+                    version_jvm_params_list.append(f" {arguments_game.replace(' ', '')}")
+        elif version_json.get("minecraftArguments") is not None:
+            version_jvm_params_list.append(f" {version_json.get('minecraftArguments')}")
+        if not find_version:
+            jvm_params += "".join(version_jvm_params_list)
+            version_jvm_params_list.clear()
+        class_path = "\""
+        class_path_list = []
+        natives_path_cache_list = []
+        for libraries in version_json.get("libraries"):  # 遍历依赖
+            libraries_path = f"{self.data_dir}/libraries/{self.name_to_path(name=libraries.get('name'))}{delimiter}"
+            class_path_list.append(libraries_path)
+            if libraries.get("natives") is not None and libraries.get("natives").get(system_type) is not None:
+                natives_path = os.path.dirname(libraries_path)
+                if os.path.dirname(natives_path) not in natives_path_cache_list:
+                    for natives in os.listdir(natives_path):
+                        if "natives" in natives:
+                            natives_list.append(f"{natives_path}/{natives}")
+                    natives_path_cache_list.append(os.path.dirname(natives_path))
+        natives_path_cache_list.clear()
+        class_path += "".join(class_path_list)
+        class_path_list.clear()
+        version_jar = ""
+        if os.path.isfile(f"{self.data_dir}/versions/{version_name}/{version_name}.jar"):
+            version_jar = f"{self.data_dir}/versions/{version_name}/{version_name}.jar"
+            if version_json.get("inheritsFrom") is None:
+                class_path += version_jar
+        asset_index_id = ""
+        if version_json.get("assetIndex") is not None and version_json.get("assetIndex").get("id") is not None:  # 判断 assetIndex id 是否存在
+            asset_index_id = version_json.get("assetIndex").get("id")
+        if find_version:
+            if game_json.get("arguments") is not None:
+                for arguments_jvm in game_json.get("arguments").get("jvm"):  # 遍历 json 中的 jvm 参数
+                    if type(arguments_jvm) is str and arguments_jvm.replace(' ', '') not in jvm_params:
+                        jvm_params_list.append(f" {arguments_jvm.replace(' ', '')}")
+            elif game_json.get("minecraftArguments") is not None and " -Djava.library.path=${natives_directory} -cp ${classpath}" not in jvm_params:
+                jvm_params_list.append(" -Djava.library.path=${natives_directory} -cp ${classpath}")
+            jvm_params += "".join(jvm_params_list)
+            jvm_params_list.clear()
+            if main_class!= "":
+                jvm_params = jvm_params.replace("${classpath}", "${classpath} " + main_class)  # 添加游戏主类
+            if game_json.get("arguments") is not None:
+                for arguments_game in game_json.get("arguments").get("game"):  # 遍历 json 中的 jvm 参数
+                    if type(arguments_game) is str and arguments_game.replace(' ', '') not in jvm_params:
+                        jvm_params_list.append(f" {arguments_game.replace(' ', '')}")
+            elif game_json.get("minecraftArguments") is not None and game_json.get("minecraftArguments") not in jvm_params:
+                jvm_params_list.append(f" {game_json.get('minecraftArguments')}")
+            jvm_params += "".join(jvm_params_list)
+            jvm_params_list.clear()
+            jvm_params += "".join(version_jvm_params_list)
+            version_jvm_params_list.clear()
+            for libraries in game_json.get("libraries"):  # 遍历依赖
+                a_class_path = f"{self.data_dir}/libraries/{self.name_to_path(name=libraries.get('name'))}{delimiter}"
+                if a_class_path not in class_path:
+                    class_path_list.append(a_class_path)
+                if libraries.get("natives") is not None and libraries.get("natives").get(system_type) is not None:
+                    natives_path = os.path.dirname(a_class_path)
+                    if os.path.dirname(natives_path) not in natives_path_cache_list:
+                        for natives in os.listdir(natives_path):
+                            if "natives" in natives and natives not in natives_list:
+                                natives_list.append(f"{natives_path}/{natives}")
+                        natives_path_cache_list.append(os.path.dirname(natives_path))
+            natives_path_cache_list.clear()
+            class_path += "".join(class_path_list)
+            class_path_list.clear()
+            if not os.path.isfile(f"{self.data_dir}/versions/{version_name}/{version_name}.jar") and version_jar == "":
+                class_path += f"{self.data_dir}/versions/{version_json.get('inheritsFrom')}/{version_json.get('inheritsFrom')}.jar"
+            else:
+                class_path += version_jar
+            if asset_index_id == "":
+                asset_index_id = game_json.get("assetIndex").get("id")
+        messagebox.showinfo("参数替换", "游戏启动参数拼接完成\n正在替换对应游戏启动参数...")
+               jvm_params = jvm_params.replace("${classpath}", class_path.strip(";") + "\"")  # 把-cp 参数内容换成拼接好的依赖路径
+        jvm_params = jvm_params.replace("${library_directory}", f"\"{self.data_dir}/libraries\"", 1)  # 依赖文件夹路径
+        jvm_params = jvm_params.replace("${assets_root}", f"\"{self.data_dir}/assets\"")  # 资源文件夹路径
+        jvm_params = jvm_params.replace("${assets_index_name}", asset_index_id)  # 资源索引 id
+        find_natives_dir = False
+        for natives_path in os.listdir(f"{self.data_dir}/versions/{version_name}"):
+            if "natives" in natives_path:
+                find_natives_dir = True
+                jvm_params = jvm_params.replace("${natives_directory}", f"\"{self.data_dir}/versions/{version_name}/{natives_path}\"")  # 依赖库文件夹路径
+                break
+        if not find_natives_dir:
+            messagebox.showinfo("解压运行库", "正在解压本地运行库...")
+            os.makedirs(f"{self.data_dir}/versions/{version_name}/natives-{system_type}")
+            for native_path in natives_list:
+                self.unzip(zip_path=native_path, unzip_path=f"{self.data_dir}/versions/{version_name}/natives-{system_type}")
+            for not_native in os.listdir(f"{self.data_dir}/versions/{version_name}/natives-{system_type}"):
+                if not not_native.endswith(".dll") and os.path.isfile(f"{self.data_dir}/versions/{version_name}/natives-{system_type}/{not_native}"):
+                    os.remove(f"{self.data_dir}/versions/{version_name}/natives-{system_type}/{not_native}")
+            jvm_params = jvm_params.replace("${natives_directory}", f"\"{self.data_dir}/versions/{version_name}/natives-{system_type}\"")  # 运行库文件夹路径
+            messagebox.showinfo("解压完成", "本地运行库解压完毕")
+        if not find_natives_dir or self.config["options_lang"]!= "":
+            messagebox.showinfo("设置语言", "正在设置游戏默认语言...")
+            options_contents = lang = f"lang:{self.config['options_lang']}"
+            if os.path.isfile(f"{self.data_dir}/versions/{version_name}/options.txt"):
+                with open(f"{self.data_dir}/versions/{version_name}/options.txt", "r", encoding="utf-8") as options:
+                    options_contents = options.read()
+                options_contents = re.sub(r"lang:\S+", lang, options_contents)
+            with open(f"{self.data_dir}/versions/{version_name}/options.txt", "w", encoding="utf-8") as options:
+                options.write(options_contents)
+            messagebox.showinfo("设置完成", "游戏默认语言设置完毕")
+        natives_list.clear()
+        jvm_params = jvm_params.replace("${game_directory}", f"\"{self.data_dir}/versions/{version_name}\"")  # 游戏文件存储路径
+        jvm_params = jvm_params.replace("${launcher_name}", f"\"{self.root.title}\"")  # 启动器名字
+        jvm_params = jvm_params.replace("${launcher_version}", f"\"1.0.0\"")  # 启动器版本
+        jvm_params = jvm_params.replace("${version_name}", f"\"{version_name}\"")  # 版本名字
+        jvm_params = jvm_params.replace("${auth_player_name}", f"\"{player_name}\"")  # 玩家名字
+        jvm_params = jvm_params.replace("${user_type}", "Legacy")  # 登录方式
+        if "Legacy" == "Legacy":  # 离线模式设置唯一标识 id
+            if self.config["auth_uuid"].isspace():
+                auth_uuid = self.name_to_uuid(player_name)
+                messagebox.showinfo("生成 UUID", f"没有配置 UUID 自动生成 UUID 为: {auth_uuid}")
+            jvm_params = jvm_params.replace("${auth_uuid}", self.config["auth_uuid"])
+        jvm_params = jvm_params.replace("${auth_access_token}", self.config["access_token"])  # 正版登录令牌
+        jvm_params = jvm_params.replace("${user_properties}", "{}")  # 老版本的用户配置项
+        jvm_params = jvm_params.replace("${classpath_separator}", delimiter)  # NeoForged 的逆天参数之一,替换为 Class path 的分隔符就行了
+        jvm_params = jvm_params.replace("${library_directory}", f"{self.data_dir}/libraries")  # NeoForged 的逆天参数之二,获取依赖文件夹路径
+        if version_jar!= "":
+            jvm_params = jvm_params.replace("${primary_jar_name}", os.path.basename(version_jar))  # NeoForged 的逆天参数之三,替换为游戏本体 JAR 文件名就行了
+        messagebox.showinfo("替换完成", "游戏启动参数替换完成")
+        if out_jvm_params:
+            messagebox.showinfo("输出参数", "输出游戏启动参数")
+            # 这里可以添加输出 JVM 参数的相关逻辑
+        else:
+            messagebox.showinfo("生成脚本", "正在生成游戏启动脚本...")
+            file_suffix = "sh"
+            if system_type == "windows":  # 判断是否为 Windows
+                file_suffix = "bat"
+            with open(f"./LaunchMinecraft.{file_suffix}", "w", encoding="utf-8") as shell_file:  # 生成启动脚本
+                shell_file.write(jvm_params)
+            messagebox.showinfo("启动游戏", "游戏启动脚本生成完毕\n正在启动游戏...")
+            shell_command = f"\"{os.path.abspath(f'./LaunchMinecraft.{file_suffix}')}\""
+            run_shell_command = subprocess.Popen(shell_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)  # 启动游戏
+            for get_log in iter(run_shell_command.stdout.readline, b''):
+                # 这里可以添加处理游戏日志的逻辑
+                pass
+            # 这里可以添加处理游戏退出状态的逻辑
+            pass
 
-        assets_url = version_data["assetIndex"]["url"]
-        try:
-            self.download_file(assets_url, os.path.join(self.assets_dir, "indexes", "official.json"))
-        except Exception as e:
-            messagebox.showerror("下载失败", f"下载资产索引文件失败: {e}")
-    def download_file(self, url, destination):
-        # 下载文件并保存到指定路径
-        try:
-            response = requests.get(url, stream=True)
-            response.raise_for_status()
-            with open(destination, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            winsound.Beep(440)  # 播放下载完成的声音
-            messagebox.showinfo("下载完成", "文件下载完成。")
-        except requests.RequestException as e:
-            messagebox.showerror("下载失败", f"文件下载失败: {e}")
-            self.retry_download(url, destination)
+    def name_to_path(self, name):
+        at_index = name.find('@')
+        if at_index!= -1:
+            suffix = name[at_index + 1:]
+            name = name[0:at_index]
+        else:
+            suffix = 'jar'
+        parts = name.split(":")
+        if len(parts) == 4:
+            return f"{parts[0].replace('.', '/')}/{parts[1]}/{parts[2]}/{parts[1]}-{parts[2]}-{parts[3]}.{suffix}"
+        elif len(parts) == 3:
+            return f"{parts[0].replace('.', '/')}/{parts[1]}/{parts[2]}/{parts[1]}-{parts[2]}.{suffix}"
+        else:
+            raise Exception("名称无法转换为路径")
 
-    def retry_download(self, url, destination):
-        def retry():
-            try:
-                self.download_file(url, destination)
-            except Exception as e:
-                messagebox.showerror("下载失败", f"重试下载失败: {e}")
-                self.retry_download(url, destination)  # 递归调用以实现重试机制
+    def name_to_uuid(self, name):
+        return uuid.UUID(bytes=hashlib.md5(f"OfflinePlayer:{name}".encode('utf-8')).digest()[:16], version=3).hex
 
-        button_retry = tk.Button(self.root, text="尝试重新连接", command=retry)
-        button_retry.pack(pady=10)
+    def unzip(self, zip_path, unzip_path):
+        zip_object = zipfile.ZipFile(zip_path)
+        for file in zip_object.namelist():
+            zip_object.extract(file, unzip_path)
+        zip_object.close()
 
-    def show_launch_animation(self):
-        # 创建启动动画窗口
-        animation_window = tk.Toplevel(self.root)
-        animation_window.title("启动中...")
-        animation_window.geometry("300x200")
+    def download_manager(self, download_lists, max_thread):
+        global download_list_, downloaded_list_
+        download_list_len = len(download_lists)
+        if download_list_len!= 0:
+            download_list_ = download_lists.copy()
+            downloaded_list_ = []
+            max_thread = min(max_thread // 2, download_list_len)
+            step = download_list_len // max_thread
+            remainder = download_list_len % max_thread
+            start = 0
+            download_threads = []
+            for download_task in range(max_thread):
+                end = start + step + (download_task < remainder)
+                thread = threading.Thread(target=self.download_thread, args=(download_lists[start:end]))
+                thread.start()
+                download_threads.append(thread)
+                start = end
+            for wait_thread in download_threads:
+                wait_thread.join()
 
-        # 添加进度条
-        progress_label = tk.Label(animation_window, text="启动中...", font=("Helvetica", 16))
-        progress_label.pack(pady=20)
+    def download_thread(self, download_list):
+        global downloaded_list_
+        for download_task in download_list:
+            download_task0 = download_task[0]
+            download_task1 = download_task[1]
+            if not thread_stop:
+                path_name = ""
+                with thread_lock:
+                    for dir_name in re.split(r"[\\/]", os.path.dirname(download_task1)):
+                        path_name += f"{dir_name}/"
+                        if not os.path.isdir(path_name):
+                            os.makedirs(path_name)
+                file_size = int(requests.head(download_task0).headers["Content-Length"])
+                half_size = file_size // 2
+                download_file = os.path.basename(download_task1)
+                part1_path = f"{download_file}.part1"
+                thread = threading.Thread(target=self.download_part, args=(download_task0, 0, half_size - 1, part1_path))
+                thread.start()
+                part2_path = f"{download_file}.part2"
+                self.download_part(download_task0, half_size, file_size - 1, part2_path)
+                thread.join()
+                with open(download_task1, "wb") as save_file:
+                    for part in [part1_path, part2_path]:
+                        with open(part, 'rb') as part_file:
+                            save_file.write(part_file.read())
+                        os.remove(part)
+                downloaded_list_.append(download_file)
+                # 这里可以添加下载进度更新的相关逻辑
 
-        progress_var = tk.DoubleVar(value=0.0)
-        progress_bar = ttk.Progressbar(animation_window, variable=progress_var, maximum=100, length=200)
-        progress_bar.pack(pady=20)
-        # 添加挖矿动画
-        self.add_mining_animation(animation_window)
-
-        # 更新进度条
-        def update_progress():
-            for i in range(100):
-                progress_var.set(i + 1)
-                animation_window.update_idletasks()
-                time.sleep(0.03)
-            animation_window.destroy()
-
-        threading.Thread(target=update_progress).start()
-
-    def add_mining_animation(self, animation_window):
-        # 这里可以添加一个简单的挖矿动画
-        # 例如，使用 Label 显示挖矿的文本
-        mining_label = tk.Label(animation_window, text="您的每一次启动都是对作者的支持\n开发团队目前只有科技猫和 bilibilibili：-价值 5 个硬币的昵称-\n关注 scicat 科技猫新号和-价值 5 个硬币的昵称-查看后续更新\n开发不易，感谢支持", font=("Helvetica", 10), wraplength=280)
-        mining_label.pack(pady=20)
-
-        # 循环显示文本
-        def cycle_text():
-            messages = [
-                "您的每一次启动都是对作者的支持",
-                "开发团队目前只有科技猫和 bilibili：-价值 5 个硬币的昵称-",
-                "关注 scicat 科技猫新号和价值 5 个硬币的昵称-开发者查看后续更新",
-                "开发不易，感谢支持"
-            ]
-            while True:
-                for message in messages:
-                    mining_label.config(text=message)
-                    animation_window.update_idletasks()
-                    time.sleep(2)
-
-        threading.Thread(target=cycle_text).start()
-
-    def handle_error(self, e):
-        # 处理错误，弹出日志复制和重启按钮
-        error_log = f"Error: {str(e)}\n\n" + traceback.format_exc()
-        try:
-            with open(os.path.join(self.logs_dir, "error.log"), "w") as f:
-                f.write(error_log)
-        except Exception as err:
-            print(f"写入错误日志失败: {err}")
-        messagebox.showerror("错误", "游戏启动失败，错误日志已保存。\n您可以复制日志并重启程序。")
-        copy_log_button = tk.Button(self.root, text="复制日志并重启", command=lambda: self.copy_log_and_restart(error_log))
-        copy_log_button.pack(pady=10)
-
-    def copy_log_and_restart(self, error_log):
-        # 复制日志到剪贴板
-        try:
-            pyperclip.copy(error_log)
-        except Exception as err:
-            messagebox.showerror("错误", f"复制日志到剪贴板失败: {err}")
-        # 重启程序
-        restart_cmd = f'"{sys.executable}" "{__file__}"'
-        try:
-            subprocess.Popen(restart_cmd, shell=True)
-        except Exception as err:
-            messagebox.showerror("错误", f"重启程序失败: {err}")
-        # 关闭当前窗口
-        self.root.destroy()
-
+    def download_part(self, download_url, part_start, part_end, file_name):
+        response = requests.get(download_url, headers={"Range": f"bytes={part_start}-{part_end}"}, stream=True)
+        with open(file_name, "wb") as file_part:
+            file_part.write(response.content)
 
 if __name__ == "__main__":
     root = tk.Tk()
