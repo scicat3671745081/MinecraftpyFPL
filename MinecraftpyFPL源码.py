@@ -11,6 +11,7 @@ import requests
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk
+import pyperclip  # 导入 pyperclip 库用于文本复制
 
 class EMCLKException(Exception):  # 核心的异常错误基类
     def __init__(self, error_type="Exception", error_code="0x001", error_message="IMCLK Exception"):
@@ -47,7 +48,7 @@ class EMCLKReturn:  # 这个类定义了核心的种种内容输出的定义,可
         raise EMCLKException(error_type=error_type, error_code=error_code, error_message=error_message)
 
 
-def name_to_path(name: str, return_methods: type | EMCLKReturn=EMCLKReturn) -> str:  # 将名字转换为路径函数
+def name_to_path(name: str, return_methods: type | EMCLKReturn = EMCLKReturn) -> str:  # 将名字转换为路径函数
     at_index = name.find('@')
     if at_index!= -1:
         suffix = name[at_index + 1:]
@@ -93,7 +94,7 @@ def download_part(download_url: str, part_start: int, part_end: int, file_name: 
         file_part.write(response.content)
 
 
-def download_thread(download_list: list, return_methods: type | EMCLKReturn=EMCLKReturn):
+def download_thread(download_list: list, return_methods: type | EMCLKReturn = EMCLKReturn):
     global downloaded_list_
     for download_task in download_list:
         download_task0 = download_task[0]
@@ -123,7 +124,7 @@ def download_thread(download_list: list, return_methods: type | EMCLKReturn=EMCL
             return_methods.return_download(file_name=download_file, download_list=download_list_, downloaded_list=downloaded_list_)
 
 
-def download_manager(download_list: list, max_thread: int, return_methods: type | EMCLKReturn=EMCLKReturn):
+def download_manager(download_list: list, max_thread: int, return_methods: type | EMCLKReturn = EMCLKReturn):
     global download_list_, downloaded_list_
     download_list_len = len(download_list)
     if download_list_len!= 0:
@@ -144,11 +145,18 @@ def download_manager(download_list: list, max_thread: int, return_methods: type 
             wait_thread.join()
 
 
-def launch_minecraft(java_path: str, game_path: str, version_name: str, max_use_ram: str | int, player_name: str, user_type: str = "Legacy", auth_uuid="", access_token: str="None", first_options_lang: str="zh_CN", options_lang: str ="", launcher_name: str="MinecraftpyFPL", launcher_version: str="0.1145", default_version_type: bool=False, custom_jvm_params: str = "", return_methods: type | EMCLKReturn=EMCLKReturn, completes_file: bool=True, out_jvm_params: bool=False):
+def launch_minecraft(java_path: str, game_path: str, version_name: str, max_use_ram: str | int, player_name: str,
+                     user_type: str = "Legacy", auth_uuid="", access_token: str = "None",
+                     first_options_lang: str = "zh_CN", options_lang: str = "", launcher_name: str = "MinecraftpyFPL",
+                     launcher_version: str = "0.1145", default_version_type: bool = False, custom_jvm_params: str = "",
+                     return_methods: type | EMCLKReturn = EMCLKReturn, completes_file: bool = True,
+                     out_jvm_params: bool = False):
     if bool(re.search(pattern=r"[^a-zA-Z0-9\-_+.]", string=player_name)):  # 检测用户名是否合法
-        return_methods.return_error_message(error_type="参数", error_code="0x004", error_message="玩家名称不能包含数字、减号、下划线、加号或英文句号(小数点)以外的字符")
+        return_methods.return_error_message(error_type="参数", error_code="0x004",
+                                           error_message="玩家名称不能包含数字、减号、下划线、加号或英文句号(小数点)以外的字符")
     if auth_uuid!= "" and not is_uuid(str(auth_uuid)):  # 检测是否定义了UUID3,是否合法
-        return_methods.return_error_message(error_type="参数", error_code="0x005", error_message="这是一个不正确的UUID3，它必须由32个十六进制整数字符组成")
+        return_methods.return_error_message(error_type="参数", error_code="0x005",
+                                           error_message="这是一个不正确的UUID3，它必须由32个十六进制整数字符组成")
     return_methods.return_launcher_log(log="准备启动中...")
     jvm_params = ""
     jvm_params_list = []
@@ -176,7 +184,8 @@ def launch_minecraft(java_path: str, game_path: str, version_name: str, max_use_
         system_type = "osx"
         jvm_params_list.append(f" -XstartOnFirstThread -Xms256M")
     else:
-        return_methods.return_error_message(error_type="系统", error_code="0x006", error_message="您的系统不是Windows、Linux、MacOS(OSX)")
+        return_methods.return_error_message(error_type="系统", error_code="0x006",
+                                           error_message="您的系统不是Windows、Linux、MacOS(OSX)")
     jvm_params_list.append(f" -Xmx{max_use_ram}M -XX:+UseG1GC -XX:-UseAdaptiveSizePolicy -XX:-OmitStackTraceInFastThrow -Dfml.ignoreInvalidMinecraftCertificates=True -Dfml.ignorePatchDiscrepancies=True -Dlog4j2.formatMsgNoLookups=true")
     jvm_params += "".join(jvm_params_list)
     jvm_params_list.clear()
@@ -216,7 +225,8 @@ def launch_minecraft(java_path: str, game_path: str, version_name: str, max_use_
                     return_methods.return_launcher_log(log="原版游戏需要补全的依赖库文件检查完毕")
                 break
         if not find_version:
-            return_methods.return_error_message(error_type="文件", error_code="0x003", error_message="找不到该版本的原版游戏, 请确认原版游戏已正确安装")
+            return_methods.return_error_message(error_type="文件", error_code="0x003",
+                                               error_message="找不到该版本的原版游戏, 请确认原版游戏已正确安装")
     if completes_file:
         if len(download_lists)!= 0:
             max_thread = 64
@@ -442,6 +452,11 @@ def create_ui():
     switch_frame = tk.Frame(root, bg="light blue", width=50, height=50)
     switch_frame.pack()
 
+    # 加载并显示图片
+    image = PhotoImage(file="https://github.com/scicat3671745081/MinecraftpyFPL/blob/main/8f2dbaeeef030aa5ccbf6e4ef963a9f842252b46b0c91dfccd895c3701f02370.0.PNG?raw=true")  # 替换为您的图片路径
+    image_label = tk.Label(root, image=image)
+    image_label.pack()
+
     # 创建启动游戏按钮
     start_button = tk.Button(root, text="启动游戏")
     start_button.pack(pady=10)
@@ -468,4 +483,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
