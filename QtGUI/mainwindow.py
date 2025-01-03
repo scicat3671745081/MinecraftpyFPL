@@ -1,7 +1,7 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import os
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox
+from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QProgressBar
 from PySide6.QtUiTools import QUiLoader
 from docopt import *
 import minecraft_launcher_lib
@@ -20,7 +20,7 @@ for i in minecraft_launcher_lib.utils.get_installed_versions(minecraft_directory
     minecraft_install_lib.append(i["id"])
 print(minecraft_install_lib)
 
-#定义现在发行的版本号
+# 定义现在发行的版本号
 minecraft_release_lib = []
 for i in minecraft_launcher_lib.utils.get_available_versions(minecraft_directory):
     minecraft_release_lib.append(i["id"])
@@ -34,43 +34,42 @@ def set_status(status: str):
 
 
 def set_progress(progress: int):
-    if current_max != 0:
+    if current_max!= 0:
+        progress_bar.setValue(progress * 100 / current_max)  # 更新进度条
         print(f"{progress}/{current_max}")
 
 
 def set_max(new_max: int):
     global current_max
     current_max = new_max
-    
-# 定义返回安装进度的函数
-callback = {
-    "setStatus": set_status,
-    "setProgress": set_progress,
-    "setMax": set_max
-}
+
 
 class Stats:
     def __init__(self):
         # 从文件中加载UI定义
-        path = os.path.realpath(os.curdir)#获取当前目录的绝对路径
+        path = os.path.realpath(os.curdir)  # 获取当前目录的绝对路径
         print(path)
-        self.ui = QUiLoader().load(path+'/run.ui')
+        self.ui = QUiLoader().load(path + '/run.ui')
         # 初始化
         self.ui.label_5.setText("安装进度")
         self.ui.comboBox_2.addItems(minecraft_release_lib)
         self.ui.comboBox.addItems(minecraft_install_lib)
+
+        # 添加进度条
+        self.progress_bar = QProgressBar(self.ui)
+        self.progress_bar.setGeometry(50, 50, 200, 25)
+
         # 连接信号
         self.ui.pushButton_3.clicked.connect(self.RunMinecraft)
         self.ui.pushButton.clicked.connect(self.InstallMinecraft)
 
     def RunMinecraft(self):
-        
         # 获取用户输入的版本号
         # Get the version number entered by the user
         lib = self.ui.comboBox.currentText()
         # self.ui.comboBox.
         options = minecraft_launcher_lib.utils.generate_test_options()  # 验证minecraft的存在 Verify the existence of minecraft
-        subprocess.run(minecraft_launcher_lib.command.get_minecraft_command(lib, minecraft_directory,options))  # 获取命令，运行命令，启动游戏 Get the command, run the command, and start the game
+        subprocess.run(minecraft_launcher_lib.command.get_minecraft_command(lib, minecraft_directory, options))  # 获取命令，运行命令，启动游戏 Get the command, run the command, and start the game
         logging.info("启动minecraft，请移步到latest.log")
         quit()
 
@@ -79,14 +78,12 @@ class Stats:
         self.ui.label_5.setText("正在下载")
         self.ui.label_5.repaint()
         logging.info("下载Minecraft")
-        minecraft_launcher_lib.install.install_minecraft_version(lib, minecraft_directory,callback=callback)  # 安装minecraft Install minecraft
+        minecraft_launcher_lib.install.install_minecraft_version(lib, minecraft_directory, callback=callback)  # 安装minecraft Install minecraft
         self.ui.label_5.setText("下载完成")
         self.ui.label_5.repaint()
-    
+
+
 app = QApplication([])
 stats = Stats()
 stats.ui.show()
 app.exec_()
-
-
-
