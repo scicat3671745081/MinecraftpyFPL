@@ -25,13 +25,6 @@
   <property name="windowTitle">
    <string>MinecraftpyFPL - Run</string>
   </property>
-  <property name="styleSheet">
-   <string notr="true">QWidget#Widget {
-     background-color: rgba(0, 0, 0, 0.1);
-     border-radius: 10px;
-     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-   }</string>
-  </property>
   <widget class="QFrame" name="frame">
    <property name="geometry">
     <rect>
@@ -42,8 +35,8 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgba(85, 190, 240, 0.8);
-     border-radius: 5px;</string>
+    <string notr="true">background-color: rgb(85, 190, 240);
+border-radius: 0px;</string>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
@@ -61,7 +54,7 @@
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">font: 40pt; color: #ffffff;</string>
+     <string notr="true">font: 40pt;</string>
     </property>
     <property name="text">
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; color:#ffffff;&quot;&gt;MinecraftpyFPL&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -79,9 +72,9 @@
    </property>
    <property name="styleSheet">
     <string notr="true">background-color: rgba(85, 190, 240, 0.5);
-     border-radius: 5px;
-     border-top-left-radius: 0px;
-     border-top-right-radius: 0px;</string>
+border-radius: 5px;
+border-top-left-radius: 0px;
+border-top-right-radius: 0px;</string>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
@@ -100,14 +93,12 @@
     </property>
     <property name="styleSheet">
      <string notr="true">background-color: rgba(255,255,255,0.3); 
-     border-radius: 5px;
-     border-top-left-radius: 0px;
-     border-top-right-radius: 0px;
-     border-end-end-radius: 0px;
-     color: white;
-     font-size: 16px;
-     transition: background-color 0.3s;
-     &#xa0;:hover { background-color: rgba(255,255,255,0.5); }</string>
+border-radius: 5px;
+border-top-left-radius: 0px;
+border-top-right-radius: 0px;
+border-end-end-radius: 0px;
+color: white;
+font-size: 16px;</string>
     </property>
     <property name="text">
      <string>启动！</string>
@@ -121,12 +112,6 @@
       <width>601</width>
       <height>61</height>
      </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">border: 1px solid #55BEF0; 
-     border-radius: 5px;
-     padding: 5px;
-     selection-background-color: #55BEF0;</string>
     </property>
    </widget>
   </widget>
@@ -157,7 +142,7 @@
    </property>
    <property name="styleSheet">
     <string notr="true">background-color: rgba(85, 190, 240, 0.5);
-     border-radius: 5px;</string>
+border-radius: 0px;</string>
    </property>
    <property name="frameShape">
     <enum>QFrame::StyledPanel</enum>
@@ -187,12 +172,6 @@
       <height>41</height>
      </rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">border: 1px solid #55BEF0; 
-     border-radius: 5px;
-     padding: 5px;
-     selection-background-color: #55BEF0;</string>
-    </property>
    </widget>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
@@ -202,14 +181,6 @@
       <width>761</width>
       <height>31</height>
      </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgba(255,255,255,0.3); 
-     border-radius: 5px;
-     color: white;
-     font-size: 16px;
-     transition: background-color 0.3s;
-     &#xa0;:hover { background-color: rgba(255,255,255,0.5); }</string>
     </property>
     <property name="text">
      <string>开始下载</string>
@@ -224,52 +195,8 @@
       <height>21</height>
      </rect>
     </property>
-    <property name="styleSheet">
-     <string notr="true">font-size: 16px; color: #ffffff;</string>
-    </property>
     <property name="text">
-     <string>准备下载...</string>
-    </property>
-   </widget>
-   <widget class="QProgressBar" name="progressBar">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>130</y>
-      <width>761</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">QProgressBar {
-       border: 2px solid #55BEF0;
-       border-radius: 5px;
-       text-align: center;
-     }
-     QProgressBar::chunk {
-       background-color: #55BEF0;
-     }</string>
-    </property>
-    <property name="value">
-     <number>0</number>
-    </property>
-   </widget>
-  </widget>
-  <!-- 关于软件的介绍信息 -->
-  <widget class="QLabel" name="label_about">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>170</y>
-     <width>771</width>
-     <height>241</height>
-    </rect>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">font-size: 14px; color: #ffffff; text-align: justify;</string>
-   </property>
-   <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;MinecraftpyFPL 是一个为 Minecraft 游戏设计的启动器，提供了多种功能，包括版本管理、插件和模组安装等。&lt;/p&gt;&lt;p&gt;开发者信息：&lt;br&gt;scicat科技猫新号 - Bilibili 用户名：scicat科技猫新号（UID:3546648032577984）&lt;br&gt;-价值5个硬币的昵称- - Bilibili 用户名：-价值5个硬币的昵称-（UID:629975293）&lt;/p&gt;&lt;p&gt;MinecraftpyFPL官方仓库：&lt;a href='https://github.com/scicat3671745081/MinecraftpyFPL'&gt;https://github.com/scicat3671745081/MinecraftpyFPL&lt;/a&gt;&lt;/p&gt;&lt;p&gt;支持我们：&lt;a href='https://b23.tv/We81j5V'&gt;https://b23.tv/We81j5V&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     <string/>
     </property>
    </widget>
   </widget>
@@ -277,7 +204,6 @@
   <zorder>frame</zorder>
   <zorder>frame_3</zorder>
   <zorder>frame_2</zorder>
-  <zorder>label_about</zorder>
  </widget>
  <resources/>
  <connections/>
