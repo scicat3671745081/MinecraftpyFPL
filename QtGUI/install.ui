@@ -162,6 +162,23 @@ border-top-right-radius: 0px;</string>
      <string>下载</string>
     </property>
    </widget>
+   <widget class="QLabel" name="developerLabel">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>480</y>
+      <width>761</width>
+      <height>124</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>开发者信息：
+<br>scicat科技猫新号 - Bilibili 用户名：scicat科技猫新号（UID:3546648032577984）
+<br>-价值5个硬币的昵称- - Bilibili 用户名： -价值5个硬币的昵称-（UID:629975293）
+<br>官网：https://scicat3671745081.github.io/
+</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QLabel" name="label_2">
    <property name="geometry">

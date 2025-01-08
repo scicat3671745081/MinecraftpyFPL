@@ -208,27 +208,40 @@ border-radius: 0px;</string>
      <string notr="true">font-size: 12px;</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_6">
+   <widget class="QLabel" name="developerLabel">
     <property name="geometry">
      <rect>
       <x>10</x>
       <y>150</y>
-      <width>100</width>
-      <height>30</height>
+      <width>761</width>
+      <height>120</height>
      </rect>
     </property>
     <property name="text">
-     <string>离线用户名：</string>
+     <string>开发者信息：
+<br>scicat科技猫新号 - Bilibili 用户名：scicat科技猫新号（UID:3546648032577984）
+<br>-价值5个硬币的昵称- - Bilibili 用户名： -价值5个硬币的昵称-（UID:629975293）
+<br>官网：https://scicat3671745081.github.io/
+</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="lineEdit">
+   <widget class="QPushButton" name="openHtmlButton">
     <property name="geometry">
      <rect>
-      <x>120</x>
-      <y>150</y>
-      <width>200</width>
-      <height>30</height>
+      <x>300</x>
+      <y>300</y>
+      <width>150</width>
+      <height>50</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>打开 HTML</string>
+    </property>
+    <property name="clicked" type="bool">
+     <true/>
+    </property>
+    <property name="on_clicked">
+     <string>import webbrowser; webbrowser.open('res/python/index.html')</string>
     </property>
    </widget>
   </widget>

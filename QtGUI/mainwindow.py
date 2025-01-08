@@ -11,7 +11,7 @@ from typing import *
 import IPython.display as ipd
 import logging
 import time
-import requests  # 用于发送 HTTP 请求
+from PySide6.QtCore import QThread, Signal
 
 class MinecraftLauncher:
     def __init__(self):
@@ -29,11 +29,7 @@ class MinecraftLauncher:
             self.minecraft_release_lib.append(i["id"])
         print(self.minecraft_release_lib)
 
-        # 从 Minecraft 官网获取版本
-        self.get_versions_from_website()
-
         self.current_max = 0
-        self.offline_username = ""  # 新增：存储离线用户名
 
     def set_status(self, status: str):
         print(status)
@@ -48,11 +44,11 @@ class MinecraftLauncher:
             self.current_max = new_max
 
     def load_ui(self):
-        # 获取当前脚本所在的目录
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        ui_path = os.path.join(current_dir, 'run.ui')
+        # 从文件中加载 UI 定义
+        path = os.path.realpath(os.curdir)  # 获取当前目录的绝对路径
+        print(path)
         try:
-            self.ui = QUiLoader().load(ui_path)
+            self.ui = QUiLoader().load(path + '/run.ui')
         except Exception as e:
             # 处理加载 UI 时的异常
             print(f"加载 UI 出错: {str(e)}")
@@ -89,25 +85,6 @@ class MinecraftLauncher:
     def update_status(self, status):
         self.ui.label_5.setText(status)
         self.ui.label_5.repaint()
-
-    def get_versions_from_website(self):
-        url = "https://launchermeta.mojang.com/mc/game/version_manifest.json"  # Minecraft 版本信息的 URL
-        try:
-            response = requests.get(url)
-            if response.status_code == 200:
-                data = response.json()
-                versions = [version["id"] for version in data["versions"]]
-                self.minecraft_release_lib.extend(versions)
-            else:
-                logging.error("无法从 Minecraft 官网获取版本信息，状态码: %s", response.status_code)
-        except requests.exceptions.RequestException as e:
-            logging.error("获取 Minecraft 版本信息时出错: %s", e)
-
-    def set_offline_username(self, username):  # 新增：设置离线用户名的方法
-        self.offline_username = username
-
-    def get_offline_username(self):  # 新增：获取离线用户名的方法
-        return self.offline_username
 
 class InstallThread(QThread):
     progress_signal = Signal(int)
